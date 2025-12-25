@@ -26,6 +26,21 @@
         </div>
     </div>
 
+    <div id="dashboard" style="display:none;">
+    <h2>Your Spending Summary</h2>
+    <div id="category-totals"></div>
+</div>
+
+<div id="settings">
+    <h3>Custom Categories</h3>
+    <p>Add keyword (e.g., 'Starbucks') to Category (e.g., 'Coffee')</p>
+    <input type="text" id="new-keyword" placeholder="Keyword">
+    <input type="text" id="new-cat" placeholder="Category">
+    <button onclick="saveCategory()">Save Rule</button>
+</div>
+
+
+
     <script>
         const BACKEND = "https://kanakku-940001353287.us-west1.run.app/upload";
 
@@ -55,6 +70,18 @@
                 alert("Backend error. Is your Python server running?");
             }
         }
+
+            async function loadDashboard() {
+        const res = await fetch('/summary', {
+            headers: { 'x-user-id': window.userEmail } // Passed from Google Login
+        });
+        const data = await res.json();
+        const container = document.getElementById('category-totals');
+        container.innerHTML = Object.entries(data)
+            .map(([cat, amt]) => `<p><strong>${cat}:</strong> ₹${amt}</p>`)
+            .join('');
+        document.getElementById('dashboard').style.display = 'block';
+    }
     </script>
 </body>
 </html>
