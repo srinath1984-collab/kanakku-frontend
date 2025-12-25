@@ -34,7 +34,7 @@ function App() {
   const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
   return (
-    <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId="940001353287-3mu3k6jd76haav5dn6tfemu46mk76dnt.apps.googleusercontent.com.apps.googleusercontent.com">
       <div style={{ padding: '50px', fontFamily: 'sans-serif', textAlign: 'center' }}>
         <h1>Kanakku Expense Tracker</h1>
         {!user ? (
