@@ -1,66 +1,58 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Kanakku - Expense Tracker</title>
+    <title>Kanakku - Expense Manager</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 50px; background: #f4f7f6; }
-        .container { background: white; padding: 30px; border-radius: 8px; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        #upload-box { display: none; margin-top: 20px; border: 2px dashed #007bff; padding: 20px; border-radius: 5px; }
+        body { font-family: -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f0f2f5; }
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); text-align: center; width: 400px; }
+        #upload-zone { display: none; margin-top: 20px; border: 2px dashed #007bff; padding: 2rem; border-radius: 8px; background: #f8fbff; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #0056b3; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Kanakku</h1>
-        <p>Sign in to upload your expenses</p>
+    <div class="card">
+        <h2>Kanakku</h2>
+        <p>Login to process monthly expenses</p>
 
-        <div id="g_id_onload"
-             data-client_id="940001353287-3mu3k6jd76haav5dn6tfemu46mk76dnt.apps.googleusercontent.com.apps.googleusercontent.com"
-             data-callback="onSignIn">
-        </div>
+        <div id="g_id_onload" data-client_id="940001353287-3mu3k6jd76haav5dn6tfemu46mk76dnt.apps.googleusercontent.com.apps.googleusercontent.com" data-callback="handleLogin"></div>
         <div class="g_id_signin" data-type="standard"></div>
 
-        <div id="upload-box">
-            <input type="file" id="filePicker" multiple accept=".csv, .xls, .xlsx">
-            <br><br>
-            <button onclick="sendToBackend()" id="uploadBtn">Combine & Download CSV</button>
-            <p id="msg"></p>
+        <div id="upload-zone">
+            <input type="file" id="files" multiple accept=".csv,.xls,.xlsx" style="margin-bottom: 15px;">
+            <button onclick="uploadFiles()">Combine & Categorize</button>
+            <p id="status" style="font-size: 0.9rem; color: #666;"></p>
         </div>
     </div>
 
     <script>
-        const BACKEND_URL = "https://kanakku-940001353287.us-west1.run.app/upload";
+        const BACKEND = "https://kanakku-940001353287.us-west1.run.app/upload";
 
-        function onSignIn(response) {
-            console.log("Login successful");
-            document.getElementById('upload-box').style.display = 'block';
+        function handleLogin(response) {
+            document.getElementById('upload-zone').style.display = 'block';
+            console.log("Token received:", response.credential);
         }
 
-        async function sendToBackend() {
-            const files = document.getElementById('filePicker').files;
-            if (files.length === 0) return alert("Please select files first!");
+        async function uploadFiles() {
+            const fileInput = document.getElementById('files');
+            if (fileInput.files.length === 0) return alert("Select files first");
 
             const formData = new FormData();
-            for (let i = 0; i < files.length; i++) {
-                formData.append('files', files[i]);
-            }
+            for (let f of fileInput.files) formData.append('files', f);
 
-            document.getElementById('msg').innerText = "Processing on GCP...";
-
+            document.getElementById('status').innerText = "Processing...";
             try {
-                const response = await fetch(BACKEND_URL, { method: 'POST', body: formData });
-                const blob = await response.blob();
-                
-                // Automatically download the returned cumulative CSV
+                const res = await fetch(BACKEND, { method: 'POST', body: formData });
+                const blob = await res.blob();
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = "combined_expenses.csv";
-                document.body.appendChild(a);
+                a.download = "kanakku_report.csv";
                 a.click();
-                document.getElementById('msg').innerText = "Download started!";
-            } catch (err) {
-                alert("Error connecting to backend.");
+                document.getElementById('status').innerText = "Done!";
+            } catch (e) {
+                alert("Backend error. Is your Python server running?");
             }
         }
     </script>
