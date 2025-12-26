@@ -41,6 +41,11 @@
         <div class="grid">
             <div class="card">
                 <h2>Dashboard</h2>
+                <select id="month-picker" onchange="fetchSummary()">
+                    <option value="2025-12">December 2025</option>
+                    <option value="2025-11">November 2025</option>
+                    <option value="2025-10">October 2025</option>
+                </select>
                 <div id="summary-list">Loading summary...</div>
                 <button onclick="fetchSummary()" style="margin-top:15px;">Refresh Totals</button>
             </div>
@@ -105,7 +110,8 @@
     async function fetchSummary() {
         if (!userToken) return;
         try {
-            const res = await fetch(`${BACKEND}/summary`, {
+            const selectedMonth = document.getElementById('month-picker').value;
+            const res = await fetch(`${BACKEND}/summary?month=${selectedMonth}`, {
                 headers: { 'Authorization': `Bearer ${userToken}` }
             });
             const data = await res.json();
