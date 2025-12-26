@@ -25,6 +25,12 @@
         <h1>Kanakku</h1>
         <div id="g_id_onload" data-client_id="940001353287-3mu3k6jd76haav5dn6tfemu46mk76dnt.apps.googleusercontent.com" data-callback="handleLogin"></div>
         <div class="g_id_signin" data-type="standard"></div>
+<div id="app-content">
+    <div style="text-align: right; margin-bottom: 10px;">
+        <span id="user-display" style="margin-right: 10px; font-weight: bold;"></span>
+        <button onclick="signOut()" style="background: #ea4335;">Sign Out</button>
+    </div>
+    </div>
     </div>
 
     <div id="app-content">
@@ -62,9 +68,14 @@
     let userToken = "";
 
     function handleLogin(response) {
-        userToken = response.credential;
-        document.getElementById('app-content').style.display = 'block';
-        fetchSummary();
+      userToken = response.credential;
+    
+    # Decode the JWT locally just to show the user's name (optional)
+    const payload = JSON.parse(atob(userToken.split('.')[1]));
+    document.getElementById('user-display').innerText = payload.email;
+
+    document.getElementById('app-content').style.display = 'block';
+    fetchSummary();
     }
 
     // --- FETCH SUMMARY ---
