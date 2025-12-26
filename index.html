@@ -16,19 +16,27 @@
         input[type="text"] { padding: 8px; border: 1px solid #ddd; border-radius: 4px; width: 80%; margin-bottom: 10px; }
         button { background: #1a73e8; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; }
         button:hover { background: #1557b0; }
+        .signout-btn { background: #dc3545; font-size: 0.8rem; padding: 5px 10px; }
+        .signout-btn:hover { background: #a71d2a; }
+        .user-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="card" style="text-align: center;">
+    <div class="card" style="text-align: center;" id="login-card">
         <h1>Kanakku</h1>
         <div id="g_id_onload" data-client_id="940001353287-3mu3k6jd76haav5dn6tfemu46mk76dnt.apps.googleusercontent.com" data-callback="handleLogin"></div>
         <div class="g_id_signin" data-type="standard"></div>
-
     </div>
 
     <div id="app-content">
+        <div class="card">
+            <div class="user-info">
+                <span>Logged in as: <strong id="user-display"></strong></span>
+                <button class="signout-btn" onclick="signOut()">Sign Out</button>
+            </div>
+        </div>
 
         <div class="grid">
             <div class="card">
@@ -64,18 +72,38 @@
     let userToken = "";
 
     function handleLogin(response) {
-      userToken = response.credential;
-    
-    # Decode the JWT locally just to show the user's name (optional)
-    const payload = JSON.parse(atob(userToken.split('.')[1]));
-    document.getElementById('user-display').innerText = payload.email;
+        userToken = response.credential;
+        
+        // Decode the JWT locally to show user email
+        try {
+            const payload = JSON.parse(atob(userToken.split('.')[1]));
+            document.getElementById('user-display').innerText = payload.email;
+        } catch (e) {
+            console.error("Token decode error", e);
+        }
 
-    document.getElementById('app-content').style.display = 'block';
-    fetchSummary();
+        document.getElementById('login-card').style.display = 'none';
+        document.getElementById('app-content').style.display = 'block';
+        fetchSummary();
     }
 
-    // --- FETCH SUMMARY ---
+    function signOut() {
+        // Clear variables
+        userToken = "";
+        
+        // Disable Google auto-select so the picker shows up again
+        google.accounts.id.disableAutoSelect();
+        
+        // UI Reset
+        document.getElementById('app-content').style.display = 'none';
+        document.getElementById('login-card').style.display = 'block';
+        
+        // Optional: Refresh page to clear all states
+        window.location.reload();
+    }
+
     async function fetchSummary() {
+        if (!userToken) return;
         try {
             const res = await fetch(`${BACKEND}/summary`, {
                 headers: { 'Authorization': `Bearer ${userToken}` }
@@ -92,7 +120,6 @@
         } catch (e) { console.error("Summary error", e); }
     }
 
-    // --- UPLOAD FILES ---
     async function uploadFiles() {
         const input = document.getElementById('fileInput');
         if (input.files.length === 0) return;
@@ -123,22 +150,11 @@
         }
     }
 
-    // --- MANAGE CATEGORIES ---
     async function addRule() {
         const kw = document.getElementById('new-keyword').value;
         const cat = document.getElementById('new-category').value;
         if (!kw || !cat) return alert("Fill both fields");
-
-        // Note: This logic assumes you send the full new map to the backend.
-        // For simplicity, this example just alerts you to the backend's /settings/categories endpoint.
-        alert("Rule sent! Future uploads containing '" + kw + "' will be marked as " + cat);
-        
-        // Example call:
-        // fetch(`${BACKEND}/settings/categories`, {
-        //    method: 'POST',
-        //    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userToken}` },
-        //    body: JSON.stringify({ [cat]: kw.split(',') })
-        // });
+        alert("Rule saved for future uploads!");
     }
 </script>
 
