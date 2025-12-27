@@ -67,12 +67,51 @@
             </div>
             <p id="upload-status" style="text-align:center; color: #666;"></p>
         </div>
+        <div class="card">
+    <h2>User Preferences</h2>
+    <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div>
+            <label>Currency:</label>
+            <select id="pref-currency">
+                <option value="₹">₹ (INR)</option>
+                <option value="$">$ (USD)</option>
+                <option value="€">€ (EUR)</option>
+            </select>
+        </div>
+        <div>
+            <label>Date Format:</label>
+            <select id="pref-dayfirst">
+                <option value="true">DD-MM-YYYY (India/UK)</option>
+                <option value="false">MM-DD-YYYY (USA)</option>
+            </select>
+        </div>
+    </div>
+    <button onclick="savePreferences()" style="margin-top: 15px; width: 100%;">Save Settings</button>
+</div>
     </div>
 </div>
 
 <script>
     const BACKEND = "https://kanakku-940001353287.us-west1.run.app";
     let userToken = "";
+
+    async function savePreferences() {
+    const prefs = {
+        currency: document.getElementById('pref-currency').value,
+        dayfirst: document.getElementById('pref-dayfirst').value === "true"
+    };
+
+    await fetch(`${BACKEND}/preferences`, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${userToken}` 
+        },
+        body: JSON.stringify(prefs)
+    });
+    alert("Preferences saved! Re-upload files for date changes to take effect.");
+    fetchSummary(); // Refresh to update currency symbols
+}
     
 function formatMonth(monthKey) {
     const [year, month] = monthKey.split('-');
@@ -136,6 +175,11 @@ picker.innerHTML = data.months.map(m => `<option value="${m}">${formatMonth(m)}<
     async function fetchSummary() {
         if (!userToken) return;
         try {
+            const prefsRes = await fetch(`${BACKEND}/preferences`, {
+    headers: { 'Authorization': `Bearer ${userToken}` }
+});
+const prefs = await prefsRes.json();
+const currencySymbol = prefs.currency || "₹";
             const selectedMonth = document.getElementById('month-picker').value;
             const res = await fetch(`${BACKEND}/summary?month=${selectedMonth}`, {
                 headers: { 'Authorization': `Bearer ${userToken}` }
@@ -146,7 +190,7 @@ picker.innerHTML = data.months.map(m => `<option value="${m}">${formatMonth(m)}<
                 ? Object.entries(data).map(([cat, amt]) => `
                     <div class="summary-item">
                         <span>${cat}</span>
-                        <strong>₹${amt.toFixed(2)}</strong>
+                        <strong>${currencySymbol}${amt.toFixed(2)}</strong>
                     </div>`).join('')
                 : "No data yet. Upload some files!";
         } catch (e) { console.error("Summary error", e); }
