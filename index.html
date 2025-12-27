@@ -5,21 +5,79 @@
     <title>Kanakku - Personalized Expenses</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 800px; margin: 0 auto; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h1, h2 { color: #1a73e8; }
-        #app-content { display: none; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .dropzone { border: 2px dashed #1a73e8; padding: 30px; text-align: center; border-radius: 8px; background: #f8faff; cursor: pointer; }
-        .summary-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
-        input[type="text"] { padding: 8px; border: 1px solid #ddd; border-radius: 4px; width: 80%; margin-bottom: 10px; }
-        button { background: #1a73e8; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; }
-        button:hover { background: #1557b0; }
-        .signout-btn { background: #dc3545; font-size: 0.8rem; padding: 5px 10px; }
-        .signout-btn:hover { background: #a71d2a; }
-        .user-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-    </style>
+    :root {
+        --bg-color: #121212;
+        --card-bg: #1e1e1e;
+        --text-main: #e0e0e0;
+        --text-dim: #a0a0a0;
+        --accent: #bb86fc; /* Modern Purple */
+        --accent-hover: #9965f4;
+        --danger: #cf6679; /* Soft Red for Sign Out */
+    }
+
+    body { 
+        font-family: 'Inter', -apple-system, sans-serif; 
+        background: var(--bg-color); 
+        color: var(--text-main);
+        margin: 0; padding: 20px; 
+        display: flex; justify-content: center;
+    }
+
+    .container { max-width: 900px; width: 100%; }
+
+    .card { 
+        background: var(--card-bg); 
+        padding: 30px; 
+        border-radius: 16px; 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+        margin-bottom: 25px;
+        border: 1px solid rgba(255, 255, 255, 0.05); /* Subtle edge */
+    }
+
+    h1, h2 { margin-top: 0; font-weight: 700; letter-spacing: -0.5px; }
+    h1 { color: var(--accent); }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    /* Modern Buttons */
+    button { 
+        background: var(--accent); 
+        color: #000; 
+        border: none; 
+        padding: 12px 24px; 
+        border-radius: 10px; 
+        cursor: pointer; 
+        font-weight: 600; 
+        transition: transform 0.2s, background 0.2s;
+    }
+
+    button:hover { 
+        background: var(--accent-hover); 
+        transform: translateY(-2px); 
+    }
+
+    .signout-btn { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+    .signout-btn:hover { background: var(--danger); color: #000; }
+
+    /* File Dropzone */
+    .dropzone { 
+        border: 2px dashed rgba(255, 255, 255, 0.1); 
+        padding: 40px; 
+        text-align: center; 
+        border-radius: 12px; 
+        background: rgba(255, 255, 255, 0.02);
+        transition: border-color 0.3s;
+    }
+    .dropzone:hover { border-color: var(--accent); }
+
+    /* Summary Items */
+    .summary-item { 
+        display: flex; justify-content: space-between; 
+        padding: 12px 0; 
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
+    }
+    .summary-item strong { color: var(--accent); }
+</style>
 </head>
 <body>
 
