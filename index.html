@@ -41,10 +41,8 @@
         <div class="grid">
             <div class="card">
                 <h2>Dashboard</h2>
-                <select id="month-picker" onchange="fetchSummary()">
-                    <option value="2025-12">December 2025</option>
-                    <option value="2025-11">November 2025</option>
-                    <option value="2025-10">October 2025</option>
+               <select id="month-picker" onchange="fetchSummary()">
+                <option value="">Select Month</option>
                 </select>
                 <div id="summary-list">Loading summary...</div>
                 <button onclick="fetchSummary()" style="margin-top:15px;">Refresh Totals</button>
@@ -75,6 +73,32 @@
 <script>
     const BACKEND = "https://kanakku-940001353287.us-west1.run.app";
     let userToken = "";
+    
+function formatMonth(monthKey) {
+    const [year, month] = monthKey.split('-');
+    const date = new Date(year, month - 1);
+    return date.toLocaleString('default', { month: 'long', year: 'numeric' });
+}
+
+// In loadMonthPicker():
+picker.innerHTML = data.months.map(m => `<option value="${m}">${formatMonth(m)}</option>`).join('');
+    // Run this when the user logs in
+async function loadMonthPicker() {
+    const res = await fetch(`${BACKEND}/available-months`, {
+        headers: { 'Authorization': `Bearer ${userToken}` }
+    });
+    const data = await res.json();
+    const picker = document.getElementById('month-picker');
+    
+    // Clear existing options and add new ones from DB
+picker.innerHTML = data.months.map(m => `<option value="${m}">${formatMonth(m)}</option>`).join('');    
+    // Automatically trigger the first summary fetch
+    if (data.months.length > 0) {
+        picker.value = data.months[0];
+        fetchSummary();
+    }
+}
+
 
     function handleLogin(response) {
         userToken = response.credential;
@@ -83,6 +107,8 @@
         try {
             const payload = JSON.parse(atob(userToken.split('.')[1]));
             document.getElementById('user-display').innerText = payload.email;
+                loadMonthPicker(); // <--- Initialize the picker first
+
         } catch (e) {
             console.error("Token decode error", e);
         }
