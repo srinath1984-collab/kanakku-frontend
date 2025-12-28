@@ -317,6 +317,7 @@
         const BACKEND = "https://kanakku-940001353287.us-west1.run.app";
         let userToken = "";
         let myChart = null;
+        let globalPrefs = { currency: "$", dayfirst: false }; // ADDED THIS GLOBAL VARIABLE
 
         function switchTab(tabId) {
             // Hide all tabs
@@ -330,92 +331,96 @@
             if (tabId === 'analytics') renderAnalytics();
         }
 
-        async function renderAnalytics() {
-            const res = await fetch(`${BACKEND}/analytics`, {
-                headers: { 'Authorization': `Bearer ${userToken}` }
-            });
-            const history = await res.json();
-            
-            const months = Object.keys(history); // ["2025-01", "2025-02", ...]
-            const categories = [...new Set(months.flatMap(m => Object.keys(history[m])))];
-        
-            // 1. CHART: TOTAL EXPENDITURE
-            const totals = months.map(m => Object.values(history[m]).reduce((a, b) => a + b, 0));
-            renderLineChart('totalExpenditureChart', 'Total Spending', months, totals, '#bb86fc');
-        
-            // 2. GENERATE CATEGORY GRIDS
-            const grid = document.getElementById('category-charts-grid');
-            grid.innerHTML = ''; // Clear existing
-            
-            categories.forEach(cat => {
-                const canvasId = `chart-${cat.replace(/\s+/g, '-')}`;
-                const container = document.createElement('div');
-                container.className = 'card';
-                container.innerHTML = `<h3>${cat}</h3><canvas id="${canvasId}" style="height: 150px;"></canvas>`;
-                grid.appendChild(container);
-        
-                const catData = months.map(m => history[m][cat] || 0);
-                renderLineChart(canvasId, cat, months, catData, '#03dac6');
-            });
-        }
+       async function renderAnalytics() {
+    const res = await fetch(`${BACKEND}/analytics`, {
+        headers: { 'Authorization': `Bearer ${userToken}` }
+    });
+    const history = await res.json();
+    
+    const months = Object.keys(history).sort(); 
+    if (months.length === 0) return;
 
-       function renderLineChart(id, label, labels, data, color) {
-            const symbol = globalPrefs.currency || "₹"; // Use your saved currency
+    // Get all unique categories across all months
+    const categories = [...new Set(months.flatMap(m => Object.keys(history[m])))];
+
+    // 1. CHART: TOTAL EXPENDITURE (Excluding 'Income' category)
+    const totals = months.map(m => {
+        return Object.entries(history[m])
+            .filter(([cat, amt]) => cat !== "Income")
+            .reduce((sum, [cat, amt]) => sum + amt, 0);
+    });
+    renderLineChart('totalExpenditureChart', 'Monthly Expenses', months, totals, '#bb86fc');
+
+    // 2. GENERATE CATEGORY GRIDS
+    const grid = document.getElementById('category-charts-grid');
+    grid.innerHTML = ''; 
+    
+    categories.forEach(cat => {
+        if (cat === "Income") return; // Skip income here, maybe give it a special chart later
+
+        const safeId = `chart-${cat.replace(/\s+/g, '-')}`;
+        const container = document.createElement('div');
+        container.className = 'card';
+        container.innerHTML = `<h3 style="color: var(--text-dim); font-size: 0.9rem;">${cat.toUpperCase()}</h3>
+                               <div style="height: 150px;"><canvas id="${safeId}"></canvas></div>`;
+        grid.appendChild(container);
+
+        const catData = months.map(m => history[m][cat] || 0);
         
-            new Chart(document.getElementById(id), {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: label,
-                        data: data,
-                        borderColor: color,
-                        backgroundColor: color + '20', 
-                        fill: true,
-                        tension: 0.4 
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: {
-                        padding: {
-                            left: 10,
-                            right: 20,
-                            top: 10,
-                            bottom: 10
-                        }
-                    },
-                    plugins: { 
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (context) => `${symbol}${context.raw.toFixed(2)}`
-                            }
-                        }
-                    },
-                    scales: {
-                        y: { 
-                            display: true, // Change from false to true
-                            beginAtZero: true,
-                            ticks: { 
-                                color: '#a0a0a0',
-                                // Add currency symbol to the axis labels
-                                callback: (value) => symbol + value 
-                            },
-                            grid: { 
-                                color: 'rgba(255, 255, 255, 0.05)', // Subtle dark-mode grid
-                                drawBorder: false 
-                            }
-                        },
-                        x: { 
-                            ticks: { color: '#a0a0a0' }, 
-                            grid: { display: false } 
-                        }
+        // Wait for the DOM to catch up before rendering
+        setTimeout(() => {
+            renderLineChart(safeId, cat, months, catData, '#03dac6');
+        }, 0);
+    });
+}
+
+function renderLineChart(id, label, labels, data, color) {
+    const symbol = globalPrefs.currency || "₹"; 
+    const ctx = document.getElementById(id);
+    
+    // Destroy existing chart instance if it exists to allow re-rendering
+    if (chartInstances[id]) {
+        chartInstances[id].destroy();
+    }
+
+    chartInstances[id] = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: label,
+                data: data,
+                borderColor: color,
+                backgroundColor: color + '20', 
+                fill: true,
+                tension: 0.4 
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { 
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (context) => `${symbol}${context.raw.toFixed(2)}`
                     }
                 }
-            });
+            },
+            scales: {
+                y: { 
+                    beginAtZero: true,
+                    ticks: { color: '#a0a0a0', callback: (value) => symbol + value },
+                    grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false }
+                },
+                x: { 
+                    ticks: { color: '#a0a0a0' }, 
+                    grid: { display: false } 
+                }
+            }
         }
+    });
+}
         async function savePreferences() {
             const prefs = {
                 currency: document.getElementById('pref-currency').value,
@@ -513,37 +518,23 @@
             a.click();
         }
 
-        async function syncPreferences() {
-            try {
-                const res = await fetch(`${BACKEND}/preferences`, {
-                    headers: { 'Authorization': `Bearer ${userToken}` }
-                });
+       async function syncPreferences() {
+    try {
+        const res = await fetch(`${BACKEND}/preferences`, {
+            headers: { 'Authorization': `Bearer ${userToken}` }
+        });
 
-                if (res.ok) {
-                    userPrefs = await res.json();
-
-                    // --- The Critical Sync Part ---
-                    // This sets the dropdowns to match your saved DB values
-                    if (userPrefs.currency) {
-                        document.getElementById('pref-currency').value = userPrefs.currency;
-                    }
-
-                    if (userPrefs.dayfirst !== undefined) {
-                        // We convert the boolean to a string to match the <option value="true/false">
-                        document.getElementById('pref-dayfirst').value = userPrefs.dayfirst.toString();
-                    }
-
-                    // Update the UI labels/badges
-                    const dateFormat = userPrefs.dayfirst ? "DD-MM (India/UK)" : "MM-DD (USA)";
-                    console.log(`Synced: ${userPrefs.currency} and ${dateFormat}`);
-
-                    // Update dashboard display
-                    fetchSummary();
-                }
-            } catch (e) {
-                console.error("Failed to sync preferences", e);
-            }
+        if (res.ok) {
+            globalPrefs = await res.json(); // Update the GLOBAL variable
+            
+            // Set dropdowns
+            document.getElementById('pref-currency').value = globalPrefs.currency || "₹";
+            document.getElementById('pref-dayfirst').value = (globalPrefs.dayfirst !== undefined) ? globalPrefs.dayfirst.toString() : "true";
+            
+            fetchSummary();
         }
+    } catch (e) { console.error("Sync error", e); }
+}
 
         async function fetchSummary() {
             if (!userToken) return;
