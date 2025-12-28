@@ -44,6 +44,8 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             margin-bottom: 25px;
             border: 1px solid rgba(255, 255, 255, 0.05);
+            overflow: visible; /* Allows labels to show if they slightly hit the edge */
+            position: relative; /* Required for Chart.js responsiveness */
             /* Subtle edge */
         }
 
@@ -257,7 +259,9 @@
                     <div id="tab-analytics" class="tab-content" style="display:none;">
                         <div class="card">
                             <h2>Total Monthly Expenditure</h2>
+                            <div class="chart-wrapper" style="position: relative; height: 200px; width: 100%;">
                             <canvas id="totalExpenditureChart" style="height: 300px;"></canvas>
+                            </div>
                         </div>
                     
                         <div id="category-charts-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
@@ -400,6 +404,15 @@ function renderLineChart(id, label, labels, data, color) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            layout: {
+                // This is the most important fix for "Out of Bounds"
+                padding: {
+                    left: 20,   // Increase this if your currency values are long
+                    right: 25,  // Prevents the last point from clipping
+                    top: 10,
+                    bottom: 0
+                }
+            },
             plugins: { 
                 legend: { display: false },
                 tooltip: {
@@ -411,11 +424,11 @@ function renderLineChart(id, label, labels, data, color) {
             scales: {
                 y: { 
                     beginAtZero: true,
-                    ticks: { color: '#a0a0a0', callback: (value) => symbol + value },
+                    ticks: { maxTicksLimit: 5, color: '#a0a0a0', padding: 10, callback: (value) => symbol + value },
                     grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false }
                 },
                 x: { 
-                    ticks: { color: '#a0a0a0' }, 
+                    ticks: { color: '#a0a0a0', maxRotation: 0 }, 
                     grid: { display: false } 
                 }
             }
