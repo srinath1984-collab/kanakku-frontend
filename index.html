@@ -80,75 +80,57 @@
 </style>
 </head>
 <body>
-
 <div class="container">
-    <div class="card" style="text-align: center;" id="login-card">
-        <h1>Kanakku</h1>
-        <div id="g_id_onload" data-client_id="940001353287-3mu3k6jd76haav5dn6tfemu46mk76dnt.apps.googleusercontent.com" data-callback="handleLogin"></div>
-        <div class="g_id_signin" data-type="standard"></div>
+    <div id="screen-welcome" class="card" style="text-align: center; padding: 60px 20px;">
+        <img src="logo.png" alt="Logo" style="height: 100px; margin-bottom: 20px;">
+        <h1 style="font-size: 3rem; margin-bottom: 10px;">Kanakku</h1>
+        <p style="color: var(--text-dim); margin-bottom: 40px;">Smart expense tracking for the modern minimalist.</p>
+        
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+            <div id="g_id_onload" data-client_id="YOUR_CLIENT_ID" data-callback="handleLogin"></div>
+            <div class="g_id_signin" data-type="standard"></div>
+            
+            <div style="color: var(--text-dim);">or</div>
+            
+            <button onclick="enterGuestMode()" style="background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim);">
+                Continue as Guest
+            </button>
+        </div>
     </div>
 
-    <div id="app-content">
-        <div class="card">
-            <div class="user-info">
-                <span>Logged in as: <strong id="user-display"></strong></span>
-                <button class="signout-btn" onclick="signOut()">Sign Out</button>
+    <div id="screen-dashboard" style="display: none;">
+        <header class="user-info card" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <img src="logo.png" style="height: 40px;">
+                <span id="user-display" style="font-weight: 600;">Guest Mode</span>
             </div>
-        </div>
+            <button class="signout-btn" onclick="signOut()">Leave</button>
+        </header>
 
         <div class="grid">
             <div class="card">
                 <h2>Dashboard</h2>
-               <select id="month-picker" onchange="fetchSummary()">
-                <option value="">Select Month</option>
-                </select>
-                <div id="summary-list">Loading summary...</div>
-                <button onclick="fetchSummary()" style="margin-top:15px;">Refresh Totals</button>
+                <select id="month-picker" onchange="fetchSummary()"></select>
+                <div id="summary-list"></div>
             </div>
 
             <div class="card">
-                <h2>Custom Rules</h2>
-                <div id="rules-list"></div>
-                <hr>
-                <p><strong>Add New Rule:</strong></p>
-                <input type="text" id="new-keyword" placeholder="Keywords (comma separated)">
-                <input type="text" id="new-category" placeholder="Category Name">
-                <button onclick="addRule()">Add Rule</button>
+                <h2>Data Actions</h2>
+                <div class="dropzone" onclick="document.getElementById('fileInput').click()">
+                    <input type="file" id="fileInput" multiple accept=".csv" style="display:none" onchange="uploadFiles()">
+                    Upload CSV
+                </div>
+                <p id="upload-status" style="font-size: 0.8rem; margin-top: 10px;"></p>
+                
+                <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.05); margin: 20px 0;">
+                
+                <button onclick="downloadReport()" style="width: 100%; margin-top: 10px;">
+                    Download CSV for Selected Month
+                </button>
             </div>
         </div>
-
-        <div class="card">
-            <h2>Upload Monthly Files</h2>
-            <div class="dropzone" onclick="document.getElementById('fileInput').click()">
-                <input type="file" id="fileInput" multiple accept=".csv" style="display:none" onchange="uploadFiles()">
-                Drag & Drop or Click to select CSV files
-            </div>
-            <p id="upload-status" style="text-align:center; color: #666;"></p>
         </div>
-        <div class="card">
-    <h2>User Preferences</h2>
-    <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 10px;">
-        <div>
-            <label>Currency:</label>
-            <select id="pref-currency">
-                <option value="₹">₹ (INR)</option>
-                <option value="$">$ (USD)</option>
-                <option value="€">€ (EUR)</option>
-            </select>
-        </div>
-        <div>
-            <label>Date Format:</label>
-            <select id="pref-dayfirst">
-                <option value="true">DD-MM-YYYY (India/UK)</option>
-                <option value="false">MM-DD-YYYY (USA)</option>
-            </select>
-        </div>
-    </div>
-    <button onclick="savePreferences()" style="margin-top: 15px; width: 100%;">Save Settings</button>
 </div>
-    </div>
-</div>
-
 <script>
     const BACKEND = "https://kanakku-940001353287.us-west1.run.app";
     let userToken = "";
@@ -196,26 +178,30 @@ picker.innerHTML = data.months.map(m => `<option value="${m}">${formatMonth(m)}<
     }
 }
 
+    function showScreen(screenId) {
+    document.getElementById('screen-welcome').style.display = 'none';
+    document.getElementById('screen-dashboard').style.display = 'none';
+    document.getElementById(screenId).style.display = 'block';
+}
 
-    function handleLogin(response) {
-        userToken = response.credential;
-        
-        // Decode the JWT locally to show user email
-        try {
-            const payload = JSON.parse(atob(userToken.split('.')[1]));
-            document.getElementById('user-display').innerText = payload.email;
-                loadMonthPicker(); // <--- Initialize the picker first
+function enterGuestMode() {
+    userToken = "GUEST_USER"; // Backend should handle this as a separate namespace
+    document.getElementById('user-display').innerText = "Guest Workspace";
+    showScreen('screen-dashboard');
+    // Note: In guest mode, data might not persist unless you use LocalStorage
+}
 
-        } catch (e) {
-            console.error("Token decode error", e);
-        }
+function handleLogin(response) {
+    userToken = response.credential;
+    const payload = JSON.parse(atob(userToken.split('.')[1]));
+    document.getElementById('user-display').innerText = payload.email;
+    showScreen('screen-dashboard');
+    syncPreferences();
+    loadMonthPicker();
+}
 
-        document.getElementById('login-card').style.display = 'none';
-        document.getElementById('app-content').style.display = 'block';
-        syncPreferences();
-    }
 
-    function signOut() {
+       function signOut() {
         // Clear variables
         userToken = "";
         
