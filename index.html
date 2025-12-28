@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Kanakku - Personalized Expenses</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
     :root {
         --bg-color: #121212;
@@ -114,6 +115,31 @@ option {
     background-color: var(--card-bg);
     color: var(--text-main);
 }
+        .nav-item {
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    color: var(--text-dim);
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s;
+}
+
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-main);
+    transform: none; /* Sidebar items shouldn't jump */
+}
+
+.nav-item.active {
+    background: rgba(187, 134, 252, 0.1);
+    color: var(--accent);
+    border: 1px solid rgba(187, 134, 252, 0.2);
+}
 </style>
 </head>
 <body>
@@ -217,7 +243,52 @@ option {
 <script>
     const BACKEND = "https://kanakku-940001353287.us-west1.run.app";
     let userToken = "";
+let myChart = null;
 
+function switchTab(tabId) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    
+    // Show selected
+    document.getElementById(`tab-${tabId}`).style.display = 'block';
+    document.getElementById(`btn-nav-${tabId}`).classList.add('active');
+    
+    if(tabId === 'analytics') renderAnalytics();
+}
+
+async function renderAnalytics() {
+    // In a real app, you'd fetch the last 6 months from the backend.
+    // For now, let's use the current summary data.
+    const res = await fetch(`${BACKEND}/summary`, { // No month arg = all data
+        headers: { 'Authorization': `Bearer ${userToken}` }
+    });
+    const data = await res.json();
+    
+    const ctx = document.getElementById('analyticsChart').getContext('2d');
+    if (myChart) myChart.destroy(); // Clear old chart
+    
+    myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(data),
+            datasets: [{
+                label: 'Expenses by Category',
+                data: Object.values(data),
+                backgroundColor: '#bb86fc',
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: '#e0e0e0' } } },
+            scales: {
+                y: { ticks: { color: '#a0a0a0' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                x: { ticks: { color: '#a0a0a0' }, grid: { display: false } }
+            }
+        }
+    });
+}
     async function savePreferences() {
     const prefs = {
         currency: document.getElementById('pref-currency').value,
