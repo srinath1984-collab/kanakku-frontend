@@ -21,6 +21,8 @@
         color: var(--text-main);
         margin: 0; padding: 20px; 
         display: flex; justify-content: center;
+        backdrop-filter: blur(10px);
+        background: rgba(30, 30, 30, 0.8); /* Semi-transparent */
     }
 
     .container { max-width: 900px; width: 100%; }
@@ -77,6 +79,41 @@
         border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
     }
     .summary-item strong { color: var(--accent); }
+        /* Universal styling for all dropdowns and inputs */
+select, input[type="text"] {
+    background-color: var(--card-bg);
+    color: var(--text-main);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    appearance: none; /* Removes the default arrow/box */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a0a0a0'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    cursor: pointer;
+}
+
+select:focus, input[type="text"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(187, 134, 252, 0.1);
+}
+
+/* Specific fix for the 'White Box' in the picker */
+#month-picker {
+    width: 100%;
+    margin-bottom: 20px;
+    background-color: rgba(255, 255, 255, 0.03); /* Subtle contrast from card */
+}
+
+/* Ensure dropdown options are dark in most browsers */
+option {
+    background-color: var(--card-bg);
+    color: var(--text-main);
+}
 </style>
 </head>
 <body>
@@ -130,6 +167,29 @@
             </div>
         </div>
         </div>
+    <div class="card" style="margin-top: 20px;">
+        <h2 style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 1.2rem;">⚙️</span> Preferences
+        </h2>
+        <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <label style="color: var(--text-dim); font-size: 0.8rem; display: block; margin-bottom: 8px;">CURRENCY</label>
+                <select id="pref-currency" style="width: 100%;">
+                    <option value="₹">₹ (INR)</option>
+                    <option value="$">$ (USD)</option>
+                    <option value="€">€ (EUR)</option>
+                </select>
+            </div>
+            <div>
+                <label style="color: var(--text-dim); font-size: 0.8rem; display: block; margin-bottom: 8px;">DATE PARSER</label>
+                <select id="pref-dayfirst" style="width: 100%;">
+                    <option value="true">DD-MM-YYYY (Global)</option>
+                    <option value="false">MM-DD-YYYY (US)</option>
+                </select>
+            </div>
+        </div>
+        <button onclick="savePreferences()" style="margin-top: 20px; width: 100%;">Apply Changes</button>
+    </div>
 </div>
 <script>
     const BACKEND = "https://kanakku-940001353287.us-west1.run.app";
