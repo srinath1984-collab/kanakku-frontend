@@ -446,8 +446,7 @@ function renderLineChart(id, label, labels, data, color) {
             return date.toLocaleString('default', { month: 'long', year: 'numeric' });
         }
 
-        // In loadMonthPicker():
-        picker.innerHTML = data.months.map(m => `<option value="${m}">${formatMonth(m)}</option>`).join('');
+      
         // Run this when the user logs in
         async function loadMonthPicker() {
             const res = await fetch(`${BACKEND}/available-months`, {
