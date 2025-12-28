@@ -135,61 +135,83 @@ option {
         </div>
     </div>
 
-    <div id="screen-dashboard" style="display: none;">
-        <header class="user-info card" style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <img src="logo.png" style="height: 40px;">
-                <span id="user-display" style="font-weight: 600;">Guest Mode</span>
-            </div>
-            <button class="signout-btn" onclick="signOut()">Leave</button>
-        </header>
-
-        <div class="grid">
-            <div class="card">
-                <h2>Dashboard</h2>
-                <select id="month-picker" onchange="fetchSummary()"></select>
-                <div id="summary-list"></div>
+    <div id="screen-dashboard" style="display: none; height: 100vh; width: 100vw; overflow: hidden; position: fixed; top: 0; left: 0;">
+        <div style="display: flex; height: 100%;">
+            <nav style="width: 260px; background: #181818; border-right: 1px solid rgba(255,255,255,0.05); padding: 30px 20px; display: flex; flex-direction: column;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 40px; padding: 0 10px;">
+                <img src="logo.png" style="height: 32px;">
+                <h2 style="margin: 0; font-size: 1.2rem; color: var(--accent);">Kanakku</h2>
             </div>
 
-            <div class="card">
-                <h2>Data Actions</h2>
-                <div class="dropzone" onclick="document.getElementById('fileInput').click()">
-                    <input type="file" id="fileInput" multiple accept=".csv" style="display:none" onchange="uploadFiles()">
-                    Upload CSV
+            <div style="flex-grow: 1;">
+                <button onclick="switchTab('main')" class="nav-item active" id="btn-nav-main">🏠 Overview</button>
+                <button onclick="switchTab('analytics')" class="nav-item" id="btn-nav-analytics">📊 Analytics</button>
+                <button onclick="switchTab('settings')" class="nav-item" id="btn-nav-settings">⚙️ Settings</button>
+            </div>
+
+            <div style="border-top: 1px solid rgba(255,255,255,0.05); pt: 20px;">
+                <p id="user-display" style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 10px;"></p>
+                <button class="signout-btn" onclick="signOut()" style="width: 100%;">Sign Out</button>
+            </div>
+            </nav>
+
+            <main style="flex-grow: 1; overflow-y: auto; padding: 40px; background: var(--bg-color);">
+            
+                <div id="tab-main" class="tab-content">
+                    <div class="grid">
+                        <div class="card">
+                            <h2>Monthly Summary</h2>
+                            <select id="month-picker" onchange="fetchSummary()"></select>
+                            <div id="summary-list"></div>
+                        </div>
+                        <div class="card">
+                            <h2>Actions</h2>
+                            <div class="dropzone" onclick="document.getElementById('fileInput').click()">
+                                <input type="file" id="fileInput" multiple style="display:none" onchange="uploadFiles()">
+                                Upload CSV
+                            </div>
+                            <button onclick="downloadReport()" style="width: 100%; margin-top: 20px;">Download CSV</button>
+                        </div>
+                    </div>
+                     <div class="card" style="margin-top: 20px;">
+                        <h2 style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.2rem;">⚙️</span> Preferences
+                        </h2>
+                        <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div>
+                                <label style="color: var(--text-dim); font-size: 0.8rem; display: block; margin-bottom: 8px;">CURRENCY</label>
+                                <select id="pref-currency" style="width: 100%;">
+                                    <option value="₹">₹ (INR)</option>
+                                    <option value="$">$ (USD)</option>
+                                    <option value="€">€ (EUR)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="color: var(--text-dim); font-size: 0.8rem; display: block; margin-bottom: 8px;">DATE PARSER</label>
+                                <select id="pref-dayfirst" style="width: 100%;">
+                                    <option value="true">DD-MM-YYYY (Global)</option>
+                                    <option value="false">MM-DD-YYYY (US)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button onclick="savePreferences()" style="margin-top: 20px; width: 100%;">Apply Changes</button>
+                    </div>
+            </div>
+
+            <div id="tab-analytics" class="tab-content" style="display:none;">
+                <div class="card">
+                    <h2>Spending Trends</h2>
+                    <canvas id="analyticsChart" style="width: 100%; max-height: 400px;"></canvas>
                 </div>
-                <p id="upload-status" style="font-size: 0.8rem; margin-top: 10px;"></p>
-                
-                <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.05); margin: 20px 0;">
-                
-                <button onclick="downloadReport()" style="width: 100%; margin-top: 10px;">
-                    Download CSV for Selected Month
-                </button>
             </div>
-                <div class="card" style="margin-top: 20px;">
-        <h2 style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 1.2rem;">⚙️</span> Preferences
-        </h2>
-        <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 20px;">
-            <div>
-                <label style="color: var(--text-dim); font-size: 0.8rem; display: block; margin-bottom: 8px;">CURRENCY</label>
-                <select id="pref-currency" style="width: 100%;">
-                    <option value="₹">₹ (INR)</option>
-                    <option value="$">$ (USD)</option>
-                    <option value="€">€ (EUR)</option>
-                </select>
-            </div>
-            <div>
-                <label style="color: var(--text-dim); font-size: 0.8rem; display: block; margin-bottom: 8px;">DATE PARSER</label>
-                <select id="pref-dayfirst" style="width: 100%;">
-                    <option value="true">DD-MM-YYYY (Global)</option>
-                    <option value="false">MM-DD-YYYY (US)</option>
-                </select>
-            </div>
-        </div>
-        <button onclick="savePreferences()" style="margin-top: 20px; width: 100%;">Apply Changes</button>
+
+            <div id="tab-settings" class="tab-content" style="display:none;">
+                </div>
+        </main>
     </div>
-        </div>
-        </div>
+</div>
+
+
 
 </div>
 <script>
