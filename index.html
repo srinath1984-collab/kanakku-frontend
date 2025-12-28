@@ -318,6 +318,7 @@
         let userToken = "";
         let myChart = null;
         let globalPrefs = { currency: "$", dayfirst: false }; // ADDED THIS GLOBAL VARIABLE
+        let chartInstances = {}; // Track charts to prevent "Canvas already in use" errors
 
         function switchTab(tabId) {
             // Hide all tabs
@@ -478,12 +479,16 @@ function renderLineChart(id, label, labels, data, color) {
         }
 
         function handleLogin(response) {
+            console.log("inside handlelogin");
             userToken = response.credential;
             const payload = JSON.parse(atob(userToken.split('.')[1]));
             document.getElementById('user-display').innerText = payload.email;
             showScreen('screen-dashboard');
+            console.log("syncing pref");
             syncPreferences();
+            console.log("loading month picker");
             loadMonthPicker();
+            console.log("done handlelogin");
         }
 
 
