@@ -254,14 +254,16 @@
                         </div>
 
                     </div>
-
                     <div id="tab-analytics" class="tab-content" style="display:none;">
                         <div class="card">
-                            <h2>Spending Trends</h2>
-                            <canvas id="analyticsChart" style="width: 100%; max-height: 400px;"></canvas>
+                            <h2>Total Monthly Expenditure</h2>
+                            <canvas id="totalExpenditureChart" style="height: 300px;"></canvas>
                         </div>
+                    
+                        <div id="category-charts-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            </div>
                     </div>
-
+           
                     <div id="tab-settings" class="tab-content" style="display:none;">
                         <div class="card">
                             <h2>System Preferences</h2>
@@ -329,32 +331,52 @@
         }
 
         async function renderAnalytics() {
-            // In a real app, you'd fetch the last 6 months from the backend.
-            // For now, let's use the current summary data.
-            const res = await fetch(`${BACKEND}/summary`, { // No month arg = all data
+            const res = await fetch(`${BACKEND}/analytics`, {
                 headers: { 'Authorization': `Bearer ${userToken}` }
             });
-            const data = await res.json();
+            const history = await res.json();
+            
+            const months = Object.keys(history); // ["2025-01", "2025-02", ...]
+            const categories = [...new Set(months.flatMap(m => Object.keys(history[m])))];
+        
+            // 1. CHART: TOTAL EXPENDITURE
+            const totals = months.map(m => Object.values(history[m]).reduce((a, b) => a + b, 0));
+            renderLineChart('totalExpenditureChart', 'Total Spending', months, totals, '#bb86fc');
+        
+            // 2. GENERATE CATEGORY GRIDS
+            const grid = document.getElementById('category-charts-grid');
+            grid.innerHTML = ''; // Clear existing
+            
+            categories.forEach(cat => {
+                const canvasId = `chart-${cat.replace(/\s+/g, '-')}`;
+                const container = document.createElement('div');
+                container.className = 'card';
+                container.innerHTML = `<h3>${cat}</h3><canvas id="${canvasId}" style="height: 150px;"></canvas>`;
+                grid.appendChild(container);
+        
+                const catData = months.map(m => history[m][cat] || 0);
+                renderLineChart(canvasId, cat, months, catData, '#03dac6');
+            });
+        }
 
-            const ctx = document.getElementById('analyticsChart').getContext('2d');
-            if (myChart) myChart.destroy(); // Clear old chart
-
-            myChart = new Chart(ctx, {
-                type: 'bar',
+        function renderLineChart(id, label, labels, data, color) {
+            new Chart(document.getElementById(id), {
+                type: 'line',
                 data: {
-                    labels: Object.keys(data),
+                    labels: labels,
                     datasets: [{
-                        label: 'Expenses by Category',
-                        data: Object.values(data),
-                        backgroundColor: '#bb86fc',
-                        borderRadius: 6
+                        label: label,
+                        data: data,
+                        borderColor: color,
+                        backgroundColor: color + '20', // Add transparency for area fill
+                        fill: true,
+                        tension: 0.4 // Makes lines curvy/fashionable
                     }]
                 },
                 options: {
-                    responsive: true,
-                    plugins: { legend: { labels: { color: '#e0e0e0' } } },
+                    plugins: { legend: { display: false } },
                     scales: {
-                        y: { ticks: { color: '#a0a0a0' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: { display: false }, // Keep it clean
                         x: { ticks: { color: '#a0a0a0' }, grid: { display: false } }
                     }
                 }
