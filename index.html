@@ -226,6 +226,7 @@
                         <button onclick="switchTab('analytics')" class="nav-item" id="btn-nav-analytics">📊
                             Analytics</button>
                         <button onclick="switchTab('settings')" class="nav-item" id="btn-nav-settings">⚙️ Settings</button>
+                        <button onclick="switchTab('drilldown')" class="nav-item" id="btn-nav-drilldown">🔍 Drill Down</button>
                     </div>
 
                     <div style="border-top: 1px solid rgba(255,255,255,0.05); pt: 20px;">
@@ -304,10 +305,14 @@
                             </div>
                         </div>
 
-                        <div class="card"
-                            style="border: 1px solid rgba(187, 134, 252, 0.2); background: rgba(187, 134, 252, 0.02);">
-                            <h3 style="color: var(--accent);">Beta Features</h3>
-                            <p style="font-size: 0.9rem;">Automatic ML Categorization is currently in development.</p>
+                        <div class="card">
+                            <h3>My Categories</h3>
+                            <div id="category-tags" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px;">
+                                </div>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="new-category-input" placeholder="Add category (e.g. Pets)">
+                                <button onclick="addCategoryTag()">Add</button>
+                            </div>
                         </div>
                     </div>
                   
@@ -359,6 +364,33 @@
         let globalPrefs = { currency: "$", dayfirst: false }; // ADDED THIS GLOBAL VARIABLE
         let chartInstances = {}; // Track charts to prevent "Canvas already in use" errors
 
+        let localCategories = ["Food", "Transport", "Shopping", "Bills", "Entertainment", "Income", "Subscription", "Fuel", "Other"];
+
+        function renderCategoryTags() {
+            const container = document.getElementById('category-tags');
+            container.innerHTML = localCategories.map(cat => `
+                <span class="category-badge" style="display: flex; align-items: center; gap: 8px;">
+                    ${cat} 
+                    <span onclick="removeCategoryTag('${cat}')" style="cursor:pointer; opacity: 0.5;">&times;</span>
+                </span>
+            `).join('');
+        }
+        
+        function addCategoryTag() {
+            const input = document.getElementById('new-category-input');
+            const val = input.value.trim();
+            if (val && !localCategories.includes(val)) {
+                localCategories.push(val);
+                input.value = '';
+                renderCategoryTags();
+            }
+        }
+        
+        function removeCategoryTag(cat) {
+            localCategories = localCategories.filter(c => c !== cat);
+            renderCategoryTags();
+        }
+        
         function switchTab(tabId) {
             // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
@@ -392,7 +424,10 @@
             catPicker.innerHTML = '<option value="">All Categories</option>' + 
                 cats.map(c => `<option value="${c}">${c}</option>`).join('');
         }
-
+        
+        function generateTxIdLocally(row) {
+            return btoa(row.date + row.description + row.amount).substring(0, 16);
+        }
         async function fetchDrillDown() {
             const month = document.getElementById('drill-month-picker').value;
             const selectedOptions = Array.from(document.getElementById('drill-category-picker').selectedOptions);
@@ -427,12 +462,12 @@
         `;}).join('') : '<tr><td colspan="4" style="text-align:center; padding: 20px;">No transactions found.</td></tr>';
         }
 
-        const VALID_CATEGORIES = ["Food", "Transport", "Shopping", "Bills", "Entertainment", "Income", "Subscription", "Fuel", "Other"];
+        //const VALID_CATEGORIES = ["Food", "Transport", "Shopping", "Bills", "Entertainment", "Income", "Subscription", "Fuel", "Other"];
 
         function editCategory(docId, currentCat) {
             const cell = document.getElementById(`cat-cell-${docId}`);
             
-            let options = VALID_CATEGORIES.map(cat => 
+            let options = localCategories.map(cat => 
                 `<option value="${cat}" ${cat === currentCat ? 'selected' : ''}>${cat}</option>`
             ).join('');
         
@@ -441,6 +476,14 @@
                     ${options}
                 </select>
             `;
+        }
+
+        function showNotification(msg) {
+            const toast = document.createElement('div');
+            toast.innerText = msg;
+            toast.style = "position:fixed; bottom:20px; right:20px; background:var(--accent); color:#000; padding:10px 20px; border-radius:8px; z-index:1000;";
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
         }
         
         async function updateCategory(docId, newCat) {
@@ -562,7 +605,8 @@ function renderLineChart(id, label, labels, data, color) {
         async function savePreferences() {
             const prefs = {
                 currency: document.getElementById('pref-currency').value,
-                dayfirst: document.getElementById('pref-dayfirst').value === "true"
+                dayfirst: document.getElementById('pref-dayfirst').value === "true",
+                categories: localCategories // SEND DYNAMIC LIST TO BACKEND
             };
 
             await fetch(`${BACKEND}/preferences`, {
@@ -624,6 +668,7 @@ function renderLineChart(id, label, labels, data, color) {
             syncPreferences();
             console.log("loading month picker");
             loadMonthPicker();
+            renderCategoryTags(); 
             console.log("done handlelogin");
         }
 
