@@ -212,7 +212,7 @@ picker.innerHTML = data.months.map(m => `<option value="${m}">${formatMonth(m)}<
 
         document.getElementById('login-card').style.display = 'none';
         document.getElementById('app-content').style.display = 'block';
-        fetchSummary();
+        syncPreferences();
     }
 
     function signOut() {
@@ -229,6 +229,38 @@ picker.innerHTML = data.months.map(m => `<option value="${m}">${formatMonth(m)}<
         // Optional: Refresh page to clear all states
         window.location.reload();
     }
+
+    async function syncPreferences() {
+    try {
+        const res = await fetch(`${BACKEND}/preferences`, {
+            headers: { 'Authorization': `Bearer ${userToken}` }
+        });
+        
+        if (res.ok) {
+            userPrefs = await res.json();
+            
+            // --- The Critical Sync Part ---
+            // This sets the dropdowns to match your saved DB values
+            if (userPrefs.currency) {
+                document.getElementById('pref-currency').value = userPrefs.currency;
+            }
+            
+            if (userPrefs.dayfirst !== undefined) {
+                // We convert the boolean to a string to match the <option value="true/false">
+                document.getElementById('pref-dayfirst').value = userPrefs.dayfirst.toString();
+            }
+            
+            // Update the UI labels/badges
+            const dateFormat = userPrefs.dayfirst ? "DD-MM (India/UK)" : "MM-DD (USA)";
+            console.log(`Synced: ${userPrefs.currency} and ${dateFormat}`);
+            
+            // Update dashboard display
+            fetchSummary();
+        }
+    } catch (e) {
+        console.error("Failed to sync preferences", e);
+    }
+}
 
     async function fetchSummary() {
         if (!userToken) return;
