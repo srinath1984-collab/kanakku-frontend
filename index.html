@@ -310,6 +310,45 @@
                             <p style="font-size: 0.9rem;">Automatic ML Categorization is currently in development.</p>
                         </div>
                     </div>
+                    // End tab settings
+
+                    // Tab drilldown
+                    <div id="tab-drilldown" class="tab-content" style="display:none;">
+                        <div class="card">
+                            <h2>Expense Drill Down</h2>
+                            <div class="grid" style="grid-template-columns: 1fr 1fr auto; align-items: end; gap: 15px; margin-bottom: 20px;">
+                                <div>
+                                    <label style="color: var(--text-dim); font-size: 0.8rem; display: block; margin-bottom: 8px;">MONTH</label>
+                                    <select id="drill-month-picker" style="width: 100%;"></select>
+                                </div>
+                                <div>
+                                    <label style="color: var(--text-dim); font-size: 0.8rem; display: block; margin-bottom: 8px;">CATEGORIES (Hold Ctrl to select multiple)</label>
+                                    <select id="drill-category-picker" multiple style="height: 45px; width: 100%; padding: 5px;">
+                                        <option value="">All Categories</option>
+                                    </select>
+                                </div>
+                                <button onclick="fetchDrillDown()" style="height: 45px;">Apply Filter</button>
+                            </div>
+                    
+                            <div style="overflow-x: auto;">
+                                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                                    <thead>
+                                        <tr style="border-bottom: 2px solid rgba(255,255,255,0.1); color: var(--accent);">
+                                            <th style="padding: 12px;">Date</th>
+                                            <th style="padding: 12px;">Description</th>
+                                            <th style="padding: 12px;">Category</th>
+                                            <th style="padding: 12px; text-align: right;">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="drill-table-body">
+                                        </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    // End tab drilldown
+                    
                 </main>
             </div>
         </div>
@@ -334,6 +373,95 @@
             document.getElementById(`btn-nav-${tabId}`).classList.add('active');
 
             if (tabId === 'analytics') renderAnalytics();
+            if (tabId === 'drilldown') {
+                syncDrillDownControls();
+            }
+        }
+
+        async function syncDrillDownControls() {
+            // Sync month picker from the main dashboard
+            const mainPicker = document.getElementById('month-picker');
+            const drillPicker = document.getElementById('drill-month-picker');
+            drillPicker.innerHTML = mainPicker.innerHTML;
+            drillPicker.value = mainPicker.value;
+        
+            // Populate Category Picker from current history
+            const res = await fetch(`${BACKEND}/summary?month=${drillPicker.value}`, {
+                headers: { 'Authorization': `Bearer ${userToken}` }
+            });
+            const summary = await res.json();
+            const catPicker = document.getElementById('drill-category-picker');
+            
+            const cats = Object.keys(summary);
+            catPicker.innerHTML = '<option value="">All Categories</option>' + 
+                cats.map(c => `<option value="${c}">${c}</option>`).join('');
+        }
+
+        async function fetchDrillDown() {
+            const month = document.getElementById('drill-month-picker').value;
+            const selectedOptions = Array.from(document.getElementById('drill-category-picker').selectedOptions);
+            const categories = selectedOptions.map(o => o.value).filter(v => v !== "").join(',');
+        
+            const res = await fetch(`${BACKEND}/drilldown?month=${month}&categories=${categories}`, {
+                headers: { 'Authorization': `Bearer ${userToken}` }
+            });
+            const data = await res.json();
+            const tableBody = document.getElementById('drill-table-body');
+            const symbol = globalPrefs.currency || "₹";
+        
+            tableBody.innerHTML = data.length > 0 ? data.map(row => {
+            // We use the tx_id we generated in the backend as the document ID
+            const docId = row.id || generateTxIdLocally(row); 
+            
+            return `
+            <tr id="row-${docId}" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="padding: 12px; font-size: 0.85rem; color: var(--text-dim);">${row.date}</td>
+                <td style="padding: 12px;">${row.description}</td>
+                <td style="padding: 12px;" id="cat-cell-${docId}">
+                    <span class="category-badge">${row.category}</span>
+                </td>
+                <td style="padding: 12px; text-align: right; font-weight: 600;">${symbol}${row.amount.toFixed(2)}</td>
+                <td style="padding: 12px; text-align: right;">
+                    <button onclick="editCategory('${docId}', '${row.category}')" 
+                            style="padding: 4px 8px; font-size: 0.7rem; background: transparent; border: 1px solid var(--accent); color: var(--accent);">
+                        Edit
+                    </button>
+                </td>
+            </tr>
+        `;}).join('') : '<tr><td colspan="4" style="text-align:center; padding: 20px;">No transactions found.</td></tr>';
+        }
+
+        const VALID_CATEGORIES = ["Food", "Transport", "Shopping", "Bills", "Entertainment", "Income", "Subscription", "Fuel", "Other"];
+
+        function editCategory(docId, currentCat) {
+            const cell = document.getElementById(`cat-cell-${docId}`);
+            
+            let options = VALID_CATEGORIES.map(cat => 
+                `<option value="${cat}" ${cat === currentCat ? 'selected' : ''}>${cat}</option>`
+            ).join('');
+        
+            cell.innerHTML = `
+                <select onchange="updateCategory('${docId}', this.value)" style="font-size: 0.75rem; padding: 2px;">
+                    ${options}
+                </select>
+            `;
+        }
+        
+        async function updateCategory(docId, newCat) {
+            const res = await fetch(`${BACKEND}/update-transaction`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userToken}` 
+                },
+                body: JSON.stringify({ doc_id: docId, category: newCat })
+            });
+        
+            if (res.ok) {
+                showNotification("Category updated!");
+                fetchDrillDown(); // Refresh table
+                renderAnalytics(); // Refresh charts in background
+            }
         }
 
        async function renderAnalytics() {
