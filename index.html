@@ -199,29 +199,7 @@ option {
                             <button onclick="downloadReport()" style="width: 100%; margin-top: 20px;">Download CSV</button>
                         </div>
                     </div>
-                     <div class="card" style="margin-top: 20px;">
-                        <h2 style="display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 1.2rem;">⚙️</span> Preferences
-                        </h2>
-                        <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 20px;">
-                            <div>
-                                <label style="color: var(--text-dim); font-size: 0.8rem; display: block; margin-bottom: 8px;">CURRENCY</label>
-                                <select id="pref-currency" style="width: 100%;">
-                                    <option value="₹">₹ (INR)</option>
-                                    <option value="$">$ (USD)</option>
-                                    <option value="€">€ (EUR)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label style="color: var(--text-dim); font-size: 0.8rem; display: block; margin-bottom: 8px;">DATE PARSER</label>
-                                <select id="pref-dayfirst" style="width: 100%;">
-                                    <option value="true">DD-MM-YYYY (Global)</option>
-                                    <option value="false">MM-DD-YYYY (US)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button onclick="savePreferences()" style="margin-top: 20px; width: 100%;">Apply Changes</button>
-                    </div>
+                    
             </div>
 
             <div id="tab-analytics" class="tab-content" style="display:none;">
@@ -232,7 +210,41 @@ option {
             </div>
 
             <div id="tab-settings" class="tab-content" style="display:none;">
-                </div>
+    <div class="card">
+        <h2>System Preferences</h2>
+        <p style="color: var(--text-dim); margin-bottom: 30px;">Configure how your data is displayed and processed.</p>
+        
+        <div style="max-width: 500px;">
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 10px; font-size: 0.9rem; color: var(--accent);">CURRENCY SYMBOL</label>
+                <select id="pref-currency" style="width: 100%;">
+                    <option value="₹">₹ (INR)</option>
+                    <option value="$">$ (USD)</option>
+                    <option value="€">€ (EUR)</option>
+                    <option value="£">£ (GBP)</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <label style="display: block; margin-bottom: 10px; font-size: 0.9rem; color: var(--accent);">DATE INTERPRETATION</label>
+                <select id="pref-dayfirst" style="width: 100%;">
+                    <option value="true">DD-MM-YYYY (India, UK, Europe)</option>
+                    <option value="false">MM-DD-YYYY (USA)</option>
+                </select>
+                <small style="color: var(--text-dim); margin-top: 8px; display: block;">
+                    This affects how dates are parsed during CSV uploads.
+                </small>
+            </div>
+
+            <button onclick="savePreferences()" style="width: 100%;">Save All Changes</button>
+        </div>
+    </div>
+    
+    <div class="card" style="border: 1px solid rgba(187, 134, 252, 0.2); background: rgba(187, 134, 252, 0.02);">
+        <h3 style="color: var(--accent);">Beta Features</h3>
+        <p style="font-size: 0.9rem;">Automatic ML Categorization is currently in development.</p>
+    </div>
+</div>
         </main>
     </div>
 </div>
