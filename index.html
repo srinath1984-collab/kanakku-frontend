@@ -216,6 +216,22 @@ function handleLogin(response) {
         window.location.reload();
     }
 
+    async function downloadReport() {
+    const month = document.getElementById('month-picker').value;
+    if (!month) return alert("Select a month first");
+
+    const res = await fetch(`${BACKEND}/download?month=${month}`, {
+        headers: { 'Authorization': `Bearer ${userToken}` }
+    });
+    
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `kanakku_${month}.csv`;
+    a.click();
+}
+
     async function syncPreferences() {
     try {
         const res = await fetch(`${BACKEND}/preferences`, {
