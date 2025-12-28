@@ -597,8 +597,8 @@ function renderLineChart(id, label, labels, data, color) {
                 a.href = url;
                 a.download = "categorized_expenses.csv";
                 a.click();
+                await loadMonthPicker();
 
-                setTimeout(fetchSummary, 2000);
             } catch (e) {
                 alert("Upload failed.");
             }
