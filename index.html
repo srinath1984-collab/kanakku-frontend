@@ -359,7 +359,9 @@
             });
         }
 
-        function renderLineChart(id, label, labels, data, color) {
+       function renderLineChart(id, label, labels, data, color) {
+            const symbol = globalPrefs.currency || "₹"; // Use your saved currency
+        
             new Chart(document.getElementById(id), {
                 type: 'line',
                 data: {
@@ -368,16 +370,48 @@
                         label: label,
                         data: data,
                         borderColor: color,
-                        backgroundColor: color + '20', // Add transparency for area fill
+                        backgroundColor: color + '20', 
                         fill: true,
-                        tension: 0.4 // Makes lines curvy/fashionable
+                        tension: 0.4 
                     }]
                 },
                 options: {
-                    plugins: { legend: { display: false } },
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            left: 10,
+                            right: 20,
+                            top: 10,
+                            bottom: 10
+                        }
+                    },
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${symbol}${context.raw.toFixed(2)}`
+                            }
+                        }
+                    },
                     scales: {
-                        y: { display: false }, // Keep it clean
-                        x: { ticks: { color: '#a0a0a0' }, grid: { display: false } }
+                        y: { 
+                            display: true, // Change from false to true
+                            beginAtZero: true,
+                            ticks: { 
+                                color: '#a0a0a0',
+                                // Add currency symbol to the axis labels
+                                callback: (value) => symbol + value 
+                            },
+                            grid: { 
+                                color: 'rgba(255, 255, 255, 0.05)', // Subtle dark-mode grid
+                                drawBorder: false 
+                            }
+                        },
+                        x: { 
+                            ticks: { color: '#a0a0a0' }, 
+                            grid: { display: false } 
+                        }
                     }
                 }
             });
