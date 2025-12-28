@@ -572,7 +572,6 @@ function renderLineChart(id, label, labels, data, color) {
             const formData = new FormData();
             for (let f of input.files) formData.append('files', f);
 
-            document.getElementById('upload-status').innerText = "Uploading to GCP & Categorizing...";
 
             try {
                 const res = await fetch(`${BACKEND}/upload`, {
@@ -587,11 +586,9 @@ function renderLineChart(id, label, labels, data, color) {
                 a.download = "categorized_expenses.csv";
                 a.click();
 
-                document.getElementById('upload-status').innerText = "Upload Complete! Refreshing dashboard...";
                 setTimeout(fetchSummary, 2000);
             } catch (e) {
                 alert("Upload failed.");
-                document.getElementById('upload-status').innerText = "";
             }
         }
 
