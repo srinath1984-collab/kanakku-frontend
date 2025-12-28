@@ -1,496 +1,556 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Kanakku - Personalized Expenses</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-    :root {
-        --bg-color: #121212;
-        --card-bg: #1e1e1e;
-        --text-main: #e0e0e0;
-        --text-dim: #a0a0a0;
-        --accent: #bb86fc; /* Modern Purple */
-        --accent-hover: #9965f4;
-        --danger: #cf6679; /* Soft Red for Sign Out */
-    }
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #e0e0e0;
+            --text-dim: #a0a0a0;
+            --accent: #bb86fc;
+            /* Modern Purple */
+            --accent-hover: #9965f4;
+            --danger: #cf6679;
+            /* Soft Red for Sign Out */
+        }
 
-    body { 
-        font-family: 'Inter', -apple-system, sans-serif; 
-        background: var(--bg-color); 
-        color: var(--text-main);
-        margin: 0; padding: 20px; 
-        display: flex; justify-content: center;
-        backdrop-filter: blur(10px);
-        background: rgba(30, 30, 30, 0.8); /* Semi-transparent */
-    }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            background: rgba(30, 30, 30, 0.8);
+            /* Semi-transparent */
+        }
 
-    .container { max-width: 900px; width: 100%; }
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
 
-    .card { 
-        background: var(--card-bg); 
-        padding: 30px; 
-        border-radius: 16px; 
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
-        margin-bottom: 25px;
-        border: 1px solid rgba(255, 255, 255, 0.05); /* Subtle edge */
-    }
+        .card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            /* Subtle edge */
+        }
 
-    h1, h2 { margin-top: 0; font-weight: 700; letter-spacing: -0.5px; }
-    h1 { color: var(--accent); }
+        h1,
+        h2 {
+            margin-top: 0;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
 
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        h1 {
+            color: var(--accent);
+        }
 
-    /* Modern Buttons */
-    button { 
-        background: var(--accent); 
-        color: #000; 
-        border: none; 
-        padding: 12px 24px; 
-        border-radius: 10px; 
-        cursor: pointer; 
-        font-weight: 600; 
-        transition: transform 0.2s, background 0.2s;
-    }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
 
-    button:hover { 
-        background: var(--accent-hover); 
-        transform: translateY(-2px); 
-    }
+        /* Modern Buttons */
+        button {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s, background 0.2s;
+        }
 
-    .signout-btn { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
-    .signout-btn:hover { background: var(--danger); color: #000; }
+        button:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+        }
 
-    /* File Dropzone */
-    .dropzone { 
-        border: 2px dashed rgba(255, 255, 255, 0.1); 
-        padding: 40px; 
-        text-align: center; 
-        border-radius: 12px; 
-        background: rgba(255, 255, 255, 0.02);
-        transition: border-color 0.3s;
-    }
-    .dropzone:hover { border-color: var(--accent); }
+        .signout-btn {
+            background: transparent;
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
 
-    /* Summary Items */
-    .summary-item { 
-        display: flex; justify-content: space-between; 
-        padding: 12px 0; 
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
-    }
-    .summary-item strong { color: var(--accent); }
+        .signout-btn:hover {
+            background: var(--danger);
+            color: #000;
+        }
+
+        /* File Dropzone */
+        .dropzone {
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            text-align: center;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            transition: border-color 0.3s;
+        }
+
+        .dropzone:hover {
+            border-color: var(--accent);
+        }
+
+        /* Summary Items */
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .summary-item strong {
+            color: var(--accent);
+        }
+
         /* Universal styling for all dropdowns and inputs */
-select, input[type="text"] {
-    background-color: var(--card-bg);
-    color: var(--text-main);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 10px 15px;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    appearance: none; /* Removes the default arrow/box */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a0a0a0'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 16px;
-    cursor: pointer;
-}
+        select,
+        input[type="text"] {
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            appearance: none;
+            /* Removes the default arrow/box */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a0a0a0'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            cursor: pointer;
+        }
 
-select:focus, input[type="text"]:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(187, 134, 252, 0.1);
-}
+        select:focus,
+        input[type="text"]:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(187, 134, 252, 0.1);
+        }
 
-/* Specific fix for the 'White Box' in the picker */
-#month-picker {
-    width: 100%;
-    margin-bottom: 20px;
-    background-color: rgba(255, 255, 255, 0.03); /* Subtle contrast from card */
-}
+        /* Specific fix for the 'White Box' in the picker */
+        #month-picker {
+            width: 100%;
+            margin-bottom: 20px;
+            background-color: rgba(255, 255, 255, 0.03);
+            /* Subtle contrast from card */
+        }
 
-/* Ensure dropdown options are dark in most browsers */
-option {
-    background-color: var(--card-bg);
-    color: var(--text-main);
-}
+        /* Ensure dropdown options are dark in most browsers */
+        option {
+            background-color: var(--card-bg);
+            color: var(--text-main);
+        }
+
         .nav-item {
-    width: 100%;
-    text-align: left;
-    background: transparent;
-    color: var(--text-dim);
-    padding: 12px 15px;
-    margin-bottom: 8px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    transition: all 0.2s;
-}
+            width: 100%;
+            text-align: left;
+            background: transparent;
+            color: var(--text-dim);
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+        }
 
-.nav-item:hover {
-    background: rgba(255, 255, 255, 0.03);
-    color: var(--text-main);
-    transform: none; /* Sidebar items shouldn't jump */
-}
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-main);
+            transform: none;
+            /* Sidebar items shouldn't jump */
+        }
 
-.nav-item.active {
-    background: rgba(187, 134, 252, 0.1);
-    color: var(--accent);
-    border: 1px solid rgba(187, 134, 252, 0.2);
-}
-</style>
+        .nav-item.active {
+            background: rgba(187, 134, 252, 0.1);
+            color: var(--accent);
+            border: 1px solid rgba(187, 134, 252, 0.2);
+        }
+    </style>
 </head>
+
 <body>
-<div class="container">
-    <div id="screen-welcome" class="card" style="text-align: center; padding: 60px 20px;">
-        <img src="logo.png" alt="Logo" style="height: 100px; margin-bottom: 20px;">
-        <h1 style="font-size: 3rem; margin-bottom: 10px;">Kanakku</h1>
-        <p style="color: var(--text-dim); margin-bottom: 40px;">Smart expense tracking for the modern minimalist.</p>
-        
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
-            <div id="g_id_onload" data-client_id="940001353287-3mu3k6jd76haav5dn6tfemu46mk76dnt.apps.googleusercontent.com" data-callback="handleLogin"></div>
-            <div class="g_id_signin" data-type="standard"></div>
-            
-            <div style="color: var(--text-dim);">or</div>
-            
-            <button onclick="enterGuestMode()" style="background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim);">
-                Continue as Guest
-            </button>
+    <div class="container">
+        <div id="screen-welcome" class="card" style="text-align: center; padding: 60px 20px;">
+            <img src="logo.png" alt="Logo" style="height: 100px; margin-bottom: 20px;">
+            <h1 style="font-size: 3rem; margin-bottom: 10px;">Kanakku</h1>
+            <p style="color: var(--text-dim); margin-bottom: 40px;">Smart expense tracking for the modern minimalist.</p>
+
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+                <div id="g_id_onload"
+                    data-client_id="940001353287-3mu3k6jd76haav5dn6tfemu46mk76dnt.apps.googleusercontent.com"
+                    data-callback="handleLogin"></div>
+                <div class="g_id_signin" data-type="standard"></div>
+
+                <div style="color: var(--text-dim);">or</div>
+
+                <button onclick="enterGuestMode()"
+                    style="background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim);">
+                    Continue as Guest
+                </button>
+            </div>
         </div>
-    </div>
 
-    <div id="screen-dashboard" style="display: none; height: 100vh; width: 100vw; overflow: hidden; position: fixed; top: 0; left: 0;">
-        <div style="display: flex; height: 100%;">
-            <nav style="width: 260px; background: #181818; border-right: 1px solid rgba(255,255,255,0.05); padding: 30px 20px; display: flex; flex-direction: column;">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 40px; padding: 0 10px;">
-                <img src="logo.png" style="height: 32px;">
-                <h2 style="margin: 0; font-size: 1.2rem; color: var(--accent);">Kanakku</h2>
-            </div>
+        <div id="screen-dashboard"
+            style="display: none; height: 100vh; width: 100vw; overflow: hidden; position: fixed; top: 0; left: 0;">
+            <div style="display: flex; height: 100%;">
+                <nav
+                    style="width: 260px; background: #181818; border-right: 1px solid rgba(255,255,255,0.05); padding: 30px 20px; display: flex; flex-direction: column;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 40px; padding: 0 10px;">
+                        <img src="logo.png" style="height: 32px;">
+                        <h2 style="margin: 0; font-size: 1.2rem; color: var(--accent);">Kanakku</h2>
+                    </div>
 
-            <div style="flex-grow: 1;">
-                <button onclick="switchTab('main')" class="nav-item active" id="btn-nav-main">🏠 Overview</button>
-                <button onclick="switchTab('analytics')" class="nav-item" id="btn-nav-analytics">📊 Analytics</button>
-                <button onclick="switchTab('settings')" class="nav-item" id="btn-nav-settings">⚙️ Settings</button>
-            </div>
+                    <div style="flex-grow: 1;">
+                        <button onclick="switchTab('main')" class="nav-item active" id="btn-nav-main">🏠 Overview</button>
+                        <button onclick="switchTab('analytics')" class="nav-item" id="btn-nav-analytics">📊
+                            Analytics</button>
+                        <button onclick="switchTab('settings')" class="nav-item" id="btn-nav-settings">⚙️ Settings</button>
+                    </div>
 
-            <div style="border-top: 1px solid rgba(255,255,255,0.05); pt: 20px;">
-                <p id="user-display" style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 10px;"></p>
-                <button class="signout-btn" onclick="signOut()" style="width: 100%;">Sign Out</button>
-            </div>
-            </nav>
+                    <div style="border-top: 1px solid rgba(255,255,255,0.05); pt: 20px;">
+                        <p id="user-display" style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 10px;"></p>
+                        <button class="signout-btn" onclick="signOut()" style="width: 100%;">Sign Out</button>
+                    </div>
+                </nav>
 
-            <main style="flex-grow: 1; overflow-y: auto; padding: 40px; background: var(--bg-color);">
-            
-                <div id="tab-main" class="tab-content">
-                    <div class="grid">
-                        <div class="card">
-                            <h2>Monthly Summary</h2>
-                            <select id="month-picker" onchange="fetchSummary()"></select>
-                            <div id="summary-list"></div>
-                        </div>
-                        <div class="card">
-                            <h2>Actions</h2>
-                            <div class="dropzone" onclick="document.getElementById('fileInput').click()">
-                                <input type="file" id="fileInput" multiple style="display:none" onchange="uploadFiles()">
-                                Upload CSV
+                <main style="flex-grow: 1; overflow-y: auto; padding: 40px; background: var(--bg-color);">
+
+                    <div id="tab-main" class="tab-content">
+                        <div class="grid">
+                            <div class="card">
+                                <h2>Monthly Summary</h2>
+                                <select id="month-picker" onchange="fetchSummary()"></select>
+                                <div id="summary-list"></div>
                             </div>
-                            <button onclick="downloadReport()" style="width: 100%; margin-top: 20px;">Download CSV</button>
+                            <div class="card">
+                                <h2>Actions</h2>
+                                <div class="dropzone" onclick="document.getElementById('fileInput').click()">
+                                    <input type="file" id="fileInput" multiple style="display:none"
+                                        onchange="uploadFiles()">
+                                    Upload CSV
+                                </div>
+                                <button onclick="downloadReport()" style="width: 100%; margin-top: 20px;">Download
+                                    CSV</button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div id="tab-analytics" class="tab-content" style="display:none;">
+                        <div class="card">
+                            <h2>Spending Trends</h2>
+                            <canvas id="analyticsChart" style="width: 100%; max-height: 400px;"></canvas>
                         </div>
                     </div>
-                    
-            </div>
 
-            <div id="tab-analytics" class="tab-content" style="display:none;">
-                <div class="card">
-                    <h2>Spending Trends</h2>
-                    <canvas id="analyticsChart" style="width: 100%; max-height: 400px;"></canvas>
-                </div>
-            </div>
+                    <div id="tab-settings" class="tab-content" style="display:none;">
+                        <div class="card">
+                            <h2>System Preferences</h2>
+                            <p style="color: var(--text-dim); margin-bottom: 30px;">Configure how your data is
+                                displayed and processed.</p>
 
-            <div id="tab-settings" class="tab-content" style="display:none;">
-    <div class="card">
-        <h2>System Preferences</h2>
-        <p style="color: var(--text-dim); margin-bottom: 30px;">Configure how your data is displayed and processed.</p>
-        
-        <div style="max-width: 500px;">
-            <div style="margin-bottom: 25px;">
-                <label style="display: block; margin-bottom: 10px; font-size: 0.9rem; color: var(--accent);">CURRENCY SYMBOL</label>
-                <select id="pref-currency" style="width: 100%;">
-                    <option value="₹">₹ (INR)</option>
-                    <option value="$">$ (USD)</option>
-                    <option value="€">€ (EUR)</option>
-                    <option value="£">£ (GBP)</option>
-                </select>
-            </div>
+                            <div style="max-width: 500px;">
+                                <div style="margin-bottom: 25px;">
+                                    <label
+                                        style="display: block; margin-bottom: 10px; font-size: 0.9rem; color: var(--accent);">CURRENCY
+                                        SYMBOL</label>
+                                    <select id="pref-currency" style="width: 100%;">
+                                        <option value="₹">₹ (INR)</option>
+                                        <option value="$">$ (USD)</option>
+                                        <option value="€">€ (EUR)</option>
+                                        <option value="£">£ (GBP)</option>
+                                    </select>
+                                </div>
 
-            <div style="margin-bottom: 30px;">
-                <label style="display: block; margin-bottom: 10px; font-size: 0.9rem; color: var(--accent);">DATE INTERPRETATION</label>
-                <select id="pref-dayfirst" style="width: 100%;">
-                    <option value="true">DD-MM-YYYY (India, UK, Europe)</option>
-                    <option value="false">MM-DD-YYYY (USA)</option>
-                </select>
-                <small style="color: var(--text-dim); margin-top: 8px; display: block;">
-                    This affects how dates are parsed during CSV uploads.
-                </small>
-            </div>
+                                <div style="margin-bottom: 30px;">
+                                    <label
+                                        style="display: block; margin-bottom: 10px; font-size: 0.9rem; color: var(--accent);">DATE
+                                        INTERPRETATION</label>
+                                    <select id="pref-dayfirst" style="width: 100%;">
+                                        <option value="true">DD-MM-YYYY (India, UK, Europe)</option>
+                                        <option value="false">MM-DD-YYYY (USA)</option>
+                                    </select>
+                                    <small style="color: var(--text-dim); margin-top: 8px; display: block;">
+                                        This affects how dates are parsed during CSV uploads.
+                                    </small>
+                                </div>
 
-            <button onclick="savePreferences()" style="width: 100%;">Save All Changes</button>
+                                <button onclick="savePreferences()" style="width: 100%;">Save All Changes</button>
+                            </div>
+                        </div>
+
+                        <div class="card"
+                            style="border: 1px solid rgba(187, 134, 252, 0.2); background: rgba(187, 134, 252, 0.02);">
+                            <h3 style="color: var(--accent);">Beta Features</h3>
+                            <p style="font-size: 0.9rem;">Automatic ML Categorization is currently in development.</p>
+                        </div>
+                    </div>
+                </main>
+            </div>
         </div>
+
+
+
     </div>
-    
-    <div class="card" style="border: 1px solid rgba(187, 134, 252, 0.2); background: rgba(187, 134, 252, 0.02);">
-        <h3 style="color: var(--accent);">Beta Features</h3>
-        <p style="font-size: 0.9rem;">Automatic ML Categorization is currently in development.</p>
-    </div>
-</div>
-        </main>
-    </div>
-</div>
+    <script>
+        const BACKEND = "https://kanakku-940001353287.us-west1.run.app";
+        let userToken = "";
+        let myChart = null;
 
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
 
+            // Show selected
+            document.getElementById(`tab-${tabId}`).style.display = 'block';
+            document.getElementById(`btn-nav-${tabId}`).classList.add('active');
 
-</div>
-<script>
-    const BACKEND = "https://kanakku-940001353287.us-west1.run.app";
-    let userToken = "";
-let myChart = null;
-
-function switchTab(tabId) {
-    // Hide all tabs
-    document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
-    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-    
-    // Show selected
-    document.getElementById(`tab-${tabId}`).style.display = 'block';
-    document.getElementById(`btn-nav-${tabId}`).classList.add('active');
-    
-    if(tabId === 'analytics') renderAnalytics();
-}
-
-async function renderAnalytics() {
-    // In a real app, you'd fetch the last 6 months from the backend.
-    // For now, let's use the current summary data.
-    const res = await fetch(`${BACKEND}/summary`, { // No month arg = all data
-        headers: { 'Authorization': `Bearer ${userToken}` }
-    });
-    const data = await res.json();
-    
-    const ctx = document.getElementById('analyticsChart').getContext('2d');
-    if (myChart) myChart.destroy(); // Clear old chart
-    
-    myChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: Object.keys(data),
-            datasets: [{
-                label: 'Expenses by Category',
-                data: Object.values(data),
-                backgroundColor: '#bb86fc',
-                borderRadius: 6
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { labels: { color: '#e0e0e0' } } },
-            scales: {
-                y: { ticks: { color: '#a0a0a0' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                x: { ticks: { color: '#a0a0a0' }, grid: { display: false } }
-            }
+            if (tabId === 'analytics') renderAnalytics();
         }
-    });
-}
-    async function savePreferences() {
-    const prefs = {
-        currency: document.getElementById('pref-currency').value,
-        dayfirst: document.getElementById('pref-dayfirst').value === "true"
-    };
 
-    await fetch(`${BACKEND}/preferences`, {
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${userToken}` 
-        },
-        body: JSON.stringify(prefs)
-    });
-    alert("Preferences saved! Re-upload files for date changes to take effect.");
-    fetchSummary(); // Refresh to update currency symbols
-}
-    
-function formatMonth(monthKey) {
-    const [year, month] = monthKey.split('-');
-    const date = new Date(year, month - 1);
-    return date.toLocaleString('default', { month: 'long', year: 'numeric' });
-}
-
-// In loadMonthPicker():
-picker.innerHTML = data.months.map(m => `<option value="${m}">${formatMonth(m)}</option>`).join('');
-    // Run this when the user logs in
-async function loadMonthPicker() {
-    const res = await fetch(`${BACKEND}/available-months`, {
-        headers: { 'Authorization': `Bearer ${userToken}` }
-    });
-    const data = await res.json();
-    const picker = document.getElementById('month-picker');
-    
-    // Clear existing options and add new ones from DB
-picker.innerHTML = data.months.map(m => `<option value="${m}">${formatMonth(m)}</option>`).join('');    
-    // Automatically trigger the first summary fetch
-    if (data.months.length > 0) {
-        picker.value = data.months[0];
-        fetchSummary();
-    }
-}
-
-    function showScreen(screenId) {
-    document.getElementById('screen-welcome').style.display = 'none';
-    document.getElementById('screen-dashboard').style.display = 'none';
-    document.getElementById(screenId).style.display = 'block';
-}
-
-function enterGuestMode() {
-    userToken = "GUEST_USER"; // Backend should handle this as a separate namespace
-    document.getElementById('user-display').innerText = "Guest Workspace";
-    showScreen('screen-dashboard');
-    // Note: In guest mode, data might not persist unless you use LocalStorage
-}
-
-function handleLogin(response) {
-    userToken = response.credential;
-    const payload = JSON.parse(atob(userToken.split('.')[1]));
-    document.getElementById('user-display').innerText = payload.email;
-    showScreen('screen-dashboard');
-    syncPreferences();
-    loadMonthPicker();
-}
-
-
-       function signOut() {
-        // Clear variables
-        userToken = "";
-        
-        // Disable Google auto-select so the picker shows up again
-        google.accounts.id.disableAutoSelect();
-        
-        // UI Reset
-        document.getElementById('app-content').style.display = 'none';
-        document.getElementById('login-card').style.display = 'block';
-        
-        // Optional: Refresh page to clear all states
-        window.location.reload();
-    }
-
-    async function downloadReport() {
-    const month = document.getElementById('month-picker').value;
-    if (!month) return alert("Select a month first");
-
-    const res = await fetch(`${BACKEND}/download?month=${month}`, {
-        headers: { 'Authorization': `Bearer ${userToken}` }
-    });
-    
-    const blob = await res.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `kanakku_${month}.csv`;
-    a.click();
-}
-
-    async function syncPreferences() {
-    try {
-        const res = await fetch(`${BACKEND}/preferences`, {
-            headers: { 'Authorization': `Bearer ${userToken}` }
-        });
-        
-        if (res.ok) {
-            userPrefs = await res.json();
-            
-            // --- The Critical Sync Part ---
-            // This sets the dropdowns to match your saved DB values
-            if (userPrefs.currency) {
-                document.getElementById('pref-currency').value = userPrefs.currency;
-            }
-            
-            if (userPrefs.dayfirst !== undefined) {
-                // We convert the boolean to a string to match the <option value="true/false">
-                document.getElementById('pref-dayfirst').value = userPrefs.dayfirst.toString();
-            }
-            
-            // Update the UI labels/badges
-            const dateFormat = userPrefs.dayfirst ? "DD-MM (India/UK)" : "MM-DD (USA)";
-            console.log(`Synced: ${userPrefs.currency} and ${dateFormat}`);
-            
-            // Update dashboard display
-            fetchSummary();
-        }
-    } catch (e) {
-        console.error("Failed to sync preferences", e);
-    }
-}
-
-    async function fetchSummary() {
-        if (!userToken) return;
-        try {
-            const prefsRes = await fetch(`${BACKEND}/preferences`, {
-    headers: { 'Authorization': `Bearer ${userToken}` }
-});
-const prefs = await prefsRes.json();
-const currencySymbol = prefs.currency || "₹";
-            const selectedMonth = document.getElementById('month-picker').value;
-            const res = await fetch(`${BACKEND}/summary?month=${selectedMonth}`, {
+        async function renderAnalytics() {
+            // In a real app, you'd fetch the last 6 months from the backend.
+            // For now, let's use the current summary data.
+            const res = await fetch(`${BACKEND}/summary`, { // No month arg = all data
                 headers: { 'Authorization': `Bearer ${userToken}` }
             });
             const data = await res.json();
-            const list = document.getElementById('summary-list');
-            list.innerHTML = Object.entries(data).length > 0 
-                ? Object.entries(data).map(([cat, amt]) => `
-                    <div class="summary-item">
-                        <span>${cat}</span>
-                        <strong>${currencySymbol}${amt.toFixed(2)}</strong>
-                    </div>`).join('')
-                : "No data yet. Upload some files!";
-        } catch (e) { console.error("Summary error", e); }
-    }
 
-    async function uploadFiles() {
-        const input = document.getElementById('fileInput');
-        if (input.files.length === 0) return;
+            const ctx = document.getElementById('analyticsChart').getContext('2d');
+            if (myChart) myChart.destroy(); // Clear old chart
 
-        const formData = new FormData();
-        for (let f of input.files) formData.append('files', f);
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        label: 'Expenses by Category',
+                        data: Object.values(data),
+                        backgroundColor: '#bb86fc',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { labels: { color: '#e0e0e0' } } },
+                    scales: {
+                        y: { ticks: { color: '#a0a0a0' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { ticks: { color: '#a0a0a0' }, grid: { display: false } }
+                    }
+                }
+            });
+        }
+        async function savePreferences() {
+            const prefs = {
+                currency: document.getElementById('pref-currency').value,
+                dayfirst: document.getElementById('pref-dayfirst').value === "true"
+            };
 
-        document.getElementById('upload-status').innerText = "Uploading to GCP & Categorizing...";
-        
-        try {
-            const res = await fetch(`${BACKEND}/upload`, {
+            await fetch(`${BACKEND}/preferences`, {
                 method: 'POST',
-                body: formData,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userToken}`
+                },
+                body: JSON.stringify(prefs)
+            });
+            alert("Preferences saved! Re-upload files for date changes to take effect.");
+            fetchSummary(); // Refresh to update currency symbols
+        }
+
+        function formatMonth(monthKey) {
+            const [year, month] = monthKey.split('-');
+            const date = new Date(year, month - 1);
+            return date.toLocaleString('default', { month: 'long', year: 'numeric' });
+        }
+
+        // In loadMonthPicker():
+        picker.innerHTML = data.months.map(m => `<option value="${m}">${formatMonth(m)}</option>`).join('');
+        // Run this when the user logs in
+        async function loadMonthPicker() {
+            const res = await fetch(`${BACKEND}/available-months`, {
                 headers: { 'Authorization': `Bearer ${userToken}` }
             });
+            const data = await res.json();
+            const picker = document.getElementById('month-picker');
+
+            // Clear existing options and add new ones from DB
+            picker.innerHTML = data.months.map(m => `<option value="${m}">${formatMonth(m)}</option>`).join('');
+            // Automatically trigger the first summary fetch
+            if (data.months.length > 0) {
+                picker.value = data.months[0];
+                fetchSummary();
+            }
+        }
+
+        function showScreen(screenId) {
+            document.getElementById('screen-welcome').style.display = 'none';
+            document.getElementById('screen-dashboard').style.display = 'none';
+            document.getElementById(screenId).style.display = 'block';
+        }
+
+        function enterGuestMode() {
+            userToken = "GUEST_USER"; // Backend should handle this as a separate namespace
+            document.getElementById('user-display').innerText = "Guest Workspace";
+            showScreen('screen-dashboard');
+            // Note: In guest mode, data might not persist unless you use LocalStorage
+        }
+
+        function handleLogin(response) {
+            userToken = response.credential;
+            const payload = JSON.parse(atob(userToken.split('.')[1]));
+            document.getElementById('user-display').innerText = payload.email;
+            showScreen('screen-dashboard');
+            syncPreferences();
+            loadMonthPicker();
+        }
+
+
+        function signOut() {
+            // Clear variables
+            userToken = "";
+
+            // Disable Google auto-select so the picker shows up again
+            google.accounts.id.disableAutoSelect();
+
+            // UI Reset
+            document.getElementById('app-content').style.display = 'none';
+            document.getElementById('login-card').style.display = 'block';
+
+            // Optional: Refresh page to clear all states
+            window.location.reload();
+        }
+
+        async function downloadReport() {
+            const month = document.getElementById('month-picker').value;
+            if (!month) return alert("Select a month first");
+
+            const res = await fetch(`${BACKEND}/download?month=${month}`, {
+                headers: { 'Authorization': `Bearer ${userToken}` }
+            });
+
             const blob = await res.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = "categorized_expenses.csv";
+            a.download = `kanakku_${month}.csv`;
             a.click();
-            
-            document.getElementById('upload-status').innerText = "Upload Complete! Refreshing dashboard...";
-            setTimeout(fetchSummary, 2000);
-        } catch (e) {
-            alert("Upload failed.");
-            document.getElementById('upload-status').innerText = "";
         }
-    }
 
-    async function addRule() {
-        const kw = document.getElementById('new-keyword').value;
-        const cat = document.getElementById('new-category').value;
-        if (!kw || !cat) return alert("Fill both fields");
-        alert("Rule saved for future uploads!");
-    }
-</script>
+        async function syncPreferences() {
+            try {
+                const res = await fetch(`${BACKEND}/preferences`, {
+                    headers: { 'Authorization': `Bearer ${userToken}` }
+                });
+
+                if (res.ok) {
+                    userPrefs = await res.json();
+
+                    // --- The Critical Sync Part ---
+                    // This sets the dropdowns to match your saved DB values
+                    if (userPrefs.currency) {
+                        document.getElementById('pref-currency').value = userPrefs.currency;
+                    }
+
+                    if (userPrefs.dayfirst !== undefined) {
+                        // We convert the boolean to a string to match the <option value="true/false">
+                        document.getElementById('pref-dayfirst').value = userPrefs.dayfirst.toString();
+                    }
+
+                    // Update the UI labels/badges
+                    const dateFormat = userPrefs.dayfirst ? "DD-MM (India/UK)" : "MM-DD (USA)";
+                    console.log(`Synced: ${userPrefs.currency} and ${dateFormat}`);
+
+                    // Update dashboard display
+                    fetchSummary();
+                }
+            } catch (e) {
+                console.error("Failed to sync preferences", e);
+            }
+        }
+
+        async function fetchSummary() {
+            if (!userToken) return;
+            try {
+                const prefsRes = await fetch(`${BACKEND}/preferences`, {
+                    headers: { 'Authorization': `Bearer ${userToken}` }
+                });
+                const prefs = await prefsRes.json();
+                const currencySymbol = prefs.currency || "₹";
+                const selectedMonth = document.getElementById('month-picker').value;
+                const res = await fetch(`${BACKEND}/summary?month=${selectedMonth}`, {
+                    headers: { 'Authorization': `Bearer ${userToken}` }
+                });
+                const data = await res.json();
+                const list = document.getElementById('summary-list');
+                list.innerHTML = Object.entries(data).length > 0
+                    ? Object.entries(data).map(([cat, amt]) => `
+                            <div class="summary-item">
+                                <span>${cat}</span>
+                                <strong>${currencySymbol}${amt.toFixed(2)}</strong>
+                            </div>`).join('')
+                    : "No data yet. Upload some files!";
+            } catch (e) { console.error("Summary error", e); }
+        }
+
+        async function uploadFiles() {
+            const input = document.getElementById('fileInput');
+            if (input.files.length === 0) return;
+
+            const formData = new FormData();
+            for (let f of input.files) formData.append('files', f);
+
+            document.getElementById('upload-status').innerText = "Uploading to GCP & Categorizing...";
+
+            try {
+                const res = await fetch(`${BACKEND}/upload`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'Authorization': `Bearer ${userToken}` }
+                });
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = "categorized_expenses.csv";
+                a.click();
+
+                document.getElementById('upload-status').innerText = "Upload Complete! Refreshing dashboard...";
+                setTimeout(fetchSummary, 2000);
+            } catch (e) {
+                alert("Upload failed.");
+                document.getElementById('upload-status').innerText = "";
+            }
+        }
+
+        async function addRule() {
+            const kw = document.getElementById('new-keyword').value;
+            const cat = document.getElementById('new-category').value;
+            if (!kw || !cat) return alert("Fill both fields");
+            alert("Rule saved for future uploads!");
+        }
+    </script>
 
 </body>
+
 </html>
