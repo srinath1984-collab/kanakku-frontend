@@ -186,6 +186,40 @@
             color: var(--accent);
             border: 1px solid rgba(187, 134, 252, 0.2);
         }
+        .chip-container {
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .chip-container input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0; width: 0;
+        }
+        
+        .chip-label {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            transition: all 0.2s ease;
+        }
+        
+        .chip-container input:checked ~ .chip-label {
+            background: rgba(187, 134, 252, 0.15);
+            border-color: var(--accent);
+            color: var(--accent);
+            box-shadow: 0 0 10px rgba(187, 134, 252, 0.2);
+        }
+        
+        .chip-container:hover .chip-label {
+            border-color: var(--accent-hover);
+        }
     </style>
 </head>
 
@@ -317,20 +351,23 @@
                     </div>
                   
                     <div id="tab-drilldown" class="tab-content" style="display:none;">
-                        <div class="card">
+                       <div class="card">
                             <h2>Expense Drill Down</h2>
-                            <div class="grid" style="grid-template-columns: 1fr 1fr auto; align-items: end; gap: 15px; margin-bottom: 20px;">
-                                <div>
-                                    <label style="color: var(--text-dim); font-size: 0.8rem; display: block; margin-bottom: 8px;">MONTH</label>
-                                    <select id="drill-month-picker" style="width: 100%;"></select>
+                            <div style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 25px;">
+                                <div style="max-width: 300px;">
+                                    <label style="color: var(--text-dim); font-size: 0.8rem; display: block; margin-bottom: 8px;">SELECT MONTH</label>
+                                    <select id="drill-month-picker" onchange="fetchDrillDown()" style="width: 100%;"></select>
                                 </div>
+                    
                                 <div>
-                                    <label style="color: var(--text-dim); font-size: 0.8rem; display: block; margin-bottom: 8px;">CATEGORIES (Hold Ctrl to select multiple)</label>
-                                    <select id="drill-category-picker" multiple style="height: 45px; width: 100%; padding: 5px;">
-                                        <option value="">All Categories</option>
-                                    </select>
+                                    <label style="color: var(--text-dim); font-size: 0.8rem; display: block; margin-bottom: 12px;">
+                                        FILTER BY CATEGORIES (None selected = Show All)
+                                    </label>
+                                    <div id="drill-category-chips" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                                        </div>
                                 </div>
-                                <button onclick="fetchDrillDown()" style="height: 45px;">Apply Filter</button>
+                            </div>
+                    
                             </div>
                     
                             <div style="overflow-x: auto;">
@@ -423,8 +460,13 @@
             const catPicker = document.getElementById('drill-category-picker');
             
             const cats = Object.keys(summary);
-            catPicker.innerHTML = '<option value="">All Categories</option>' + 
-                cats.map(c => `<option value="${c}">${c}</option>`).join('');
+            // Build the Checkbox Chips
+            chipContainer.innerHTML = cats.map(cat => `
+                <label class="chip-container">
+                    <input type="checkbox" name="drill-cat" value="${cat}" onchange="fetchDrillDown()">
+                    <span class="chip-label">${cat}</span>
+                </label>
+            `).join('');
             return true;
         }
         
@@ -435,8 +477,8 @@
             const month = document.getElementById('drill-month-picker').value;
             if (!month) return; // Don't fetch if no month is selected
         
-            const selectedOptions = Array.from(document.getElementById('drill-category-picker').selectedOptions);
-            const categories = selectedOptions.map(o => o.value).filter(v => v !== "").join(',');
+           const checkboxes = document.querySelectorAll('input[name="drill-cat"]:checked');
+            const categories = Array.from(checkboxes).map(cb => cb.value).join(',');
         
             const res = await fetch(`${BACKEND}/drilldown?month=${month}&categories=${categories}`, {
                 headers: { 'Authorization': `Bearer ${userToken}` }
