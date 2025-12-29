@@ -663,7 +663,7 @@ function renderLineChart(id, label, labels, data, color) {
                 categories: localCategories // SEND DYNAMIC LIST TO BACKEND
             };
 
-            await fetch(`${BACKEND}/preferences`, {
+          const res = await fetch(`${BACKEND}/preferences`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -671,8 +671,11 @@ function renderLineChart(id, label, labels, data, color) {
                 },
                 body: JSON.stringify(prefs)
             });
-            alert("Preferences saved! Re-upload files for date changes to take effect.");
-            fetchSummary(); // Refresh to update currency symbols
+        
+            if (res.ok) {
+                showNotification("All preferences saved successfully!");
+                syncPreferences(); // Re-sync global state
+            }
         }
 
         function formatMonth(monthKey) {
