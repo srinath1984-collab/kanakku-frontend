@@ -220,6 +220,11 @@
         .chip-container:hover .chip-label {
             border-color: var(--accent-hover);
         }
+        .refreshing {
+            opacity: 0.5;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
     </style>
 </head>
 
@@ -461,8 +466,13 @@
             const chipContainer = document.getElementById('drill-category-chips');
             const cats = Object.keys(summary);
            // Use the global localCategories array we defined earlier
+            // Ensure 'Excluded' is in the list for the UI, even if not in the DB yet
+            let displayCats = [...localCategories];
+            if (!displayCats.includes('Excluded')) displayCats.push('Excluded');
+            if (!displayCats.includes('Income')) displayCats.push('Income');
+            const uniqueCats = [...new Set(displayCats)];
             if (localCategories && localCategories.length > 0) {
-                chipContainer.innerHTML = localCategories.map(cat => `
+                chipContainer.innerHTML = uniqueCats.map(cat => `
                     <label class="chip-container">
                         <input type="checkbox" name="drill-cat" value="${cat}" onchange="fetchDrillDown()">
                         <span class="chip-label">${cat}</span>
@@ -525,6 +535,9 @@
             if (!editOptions.includes('Excluded')) {
                 editOptions.push('Excluded');
             }
+            if (!editOptions.includes('Income')) {
+                editOptions.push('Income');
+            }
             let options = editOptions.map(cat => 
                 `<option value="${cat}" ${cat === currentCat ? 'selected' : ''}>${cat}</option>`
             ).join('');
@@ -557,7 +570,11 @@
             if (res.ok) {
                 showNotification("Category updated!");
                 fetchDrillDown(); // Refresh table
+                // 2. Silently update the Overview summary in the background
+                fetchSummary();
                 renderAnalytics(); // Refresh charts in background
+            } else {
+                showNotification("Update failed", true);
             }
         }
 
@@ -777,7 +794,11 @@ function renderLineChart(id, label, labels, data, color) {
             // Set dropdowns
             document.getElementById('pref-currency').value = globalPrefs.currency || "₹";
             document.getElementById('pref-dayfirst').value = (globalPrefs.dayfirst !== undefined) ? globalPrefs.dayfirst.toString() : "true";
-            
+            // Sync the master list
+            if (data.categories) {
+                localCategories = data.categories;
+                renderCategoryTags(); // Update Settings UI
+            }
             fetchSummary();
         }
     } catch (e) { console.error("Sync error", e); }
@@ -786,6 +807,7 @@ function renderLineChart(id, label, labels, data, color) {
         async function fetchSummary() {
             if (!userToken) return;
             try {
+                list.classList.add('refreshing'); // Add visual feedback
                 const prefsRes = await fetch(`${BACKEND}/preferences`, {
                     headers: { 'Authorization': `Bearer ${userToken}` }
                 });
@@ -804,6 +826,7 @@ function renderLineChart(id, label, labels, data, color) {
                                 <strong>${currencySymbol}${amt.toFixed(2)}</strong>
                             </div>`).join('')
                     : "No data yet. Upload some files!";
+                list.classList.remove('refreshing');
             } catch (e) { console.error("Summary error", e); }
         }
 
