@@ -520,8 +520,12 @@
 
         function editCategory(docId, currentCat) {
             const cell = document.getElementById(`cat-cell-${docId}`);
-            
-            let options = localCategories.map(cat => 
+            // Create a local list for the dropdown that GUARANTEES 'Excluded' is an option
+            let editOptions = [...localCategories];
+            if (!editOptions.includes('Excluded')) {
+                editOptions.push('Excluded');
+            }
+            let options = editOptions.map(cat => 
                 `<option value="${cat}" ${cat === currentCat ? 'selected' : ''}>${cat}</option>`
             ).join('');
         
