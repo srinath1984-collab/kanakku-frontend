@@ -303,17 +303,14 @@
                             </div>
                     </div>
            
-                    <div id="tab-settings" class="tab-content" style="display:none;">
+                   <div id="tab-settings" class="tab-content" style="display:none;">
                         <div class="card">
                             <h2>System Preferences</h2>
-                            <p style="color: var(--text-dim); margin-bottom: 30px;">Configure how your data is
-                                displayed and processed.</p>
-
-                            <div style="max-width: 500px;">
-                                <div style="margin-bottom: 25px;">
-                                    <label
-                                        style="display: block; margin-bottom: 10px; font-size: 0.9rem; color: var(--accent);">CURRENCY
-                                        SYMBOL</label>
+                            <p style="color: var(--text-dim); margin-bottom: 30px;">Configure how your data is displayed and processed.</p>
+                    
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+                                <div>
+                                    <label style="display: block; margin-bottom: 10px; font-size: 0.8rem; color: var(--accent); letter-spacing: 1px;">CURRENCY SYMBOL</label>
                                     <select id="pref-currency" style="width: 100%;">
                                         <option value="₹">₹ (INR)</option>
                                         <option value="$">$ (USD)</option>
@@ -321,32 +318,30 @@
                                         <option value="£">£ (GBP)</option>
                                     </select>
                                 </div>
-
-                                <div style="margin-bottom: 30px;">
-                                    <label
-                                        style="display: block; margin-bottom: 10px; font-size: 0.9rem; color: var(--accent);">DATE
-                                        INTERPRETATION</label>
+                    
+                                <div>
+                                    <label style="display: block; margin-bottom: 10px; font-size: 0.8rem; color: var(--accent); letter-spacing: 1px;">DATE INTERPRETATION</label>
                                     <select id="pref-dayfirst" style="width: 100%;">
-                                        <option value="true">DD-MM-YYYY (India, UK, Europe)</option>
+                                        <option value="true">DD-MM-YYYY (India/UK)</option>
                                         <option value="false">MM-DD-YYYY (USA)</option>
                                     </select>
-                                    <small style="color: var(--text-dim); margin-top: 8px; display: block;">
-                                        This affects how dates are parsed during CSV uploads.
-                                    </small>
                                 </div>
-
-                                <button onclick="savePreferences()" style="width: 100%;">Save All Changes</button>
                             </div>
-                        </div>
-
-                        <div class="card">
-                            <h3>My Categories</h3>
-                            <div id="category-tags" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px;">
+                    
+                            <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 25px;">
+                                <label style="display: block; margin-bottom: 15px; font-size: 0.8rem; color: var(--accent); letter-spacing: 1px;">ACTIVE CATEGORIES</label>
+                                <div id="category-tags" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
+                                    </div>
+                                
+                                <div style="display: flex; gap: 10px; max-width: 400px;">
+                                    <input type="text" id="new-category-input" placeholder="Add custom category..." style="flex-grow: 1;">
+                                    <button onclick="addCategoryTag()" style="padding: 10px 20px;">Add</button>
                                 </div>
-                            <div style="display: flex; gap: 10px;">
-                                <input type="text" id="new-category-input" placeholder="Add category (e.g. Pets)">
-                                <button onclick="addCategoryTag()">Add</button>
                             </div>
+                    
+                            <button onclick="savePreferences()" style="width: 100%; margin-top: 40px; background: var(--accent); font-weight: 700;">
+                                Save All Changes
+                            </button>
                         </div>
                     </div>
                   
@@ -402,27 +397,34 @@
 
         let localCategories = ["Food", "Transport", "Shopping", "Bills", "Entertainment", "Income", "Subscription", "Fuel", "Other"];
 
+       // Ensure this is called in handleLogin
         function renderCategoryTags() {
             const container = document.getElementById('category-tags');
+            // Using the localCategories array we keep in sync with the DB
             container.innerHTML = localCategories.map(cat => `
-                <span class="category-badge" style="display: flex; align-items: center; gap: 8px;">
-                    ${cat} 
-                    <span onclick="removeCategoryTag('${cat}')" style="cursor:pointer; opacity: 0.5;">&times;</span>
-                </span>
+                <div class="chip-label" style="display: flex; align-items: center; gap: 10px; background: rgba(187,134,252,0.1); border-color: rgba(187,134,252,0.3); color: var(--accent);">
+                    ${cat}
+                    <span onclick="removeCategoryTag('${cat}')" style="cursor:pointer; font-weight: bold; font-size: 1.1rem; line-height: 1;">&times;</span>
+                </div>
             `).join('');
         }
         
         function addCategoryTag() {
             const input = document.getElementById('new-category-input');
             const val = input.value.trim();
-            if (val && !localCategories.includes(val)) {
-                localCategories.push(val);
+            // Capitalize first letter for professional look
+            const formattedVal = val.charAt(0).toUpperCase() + val.slice(1);
+            
+            if (formattedVal && !localCategories.includes(formattedVal)) {
+                localCategories.push(formattedVal);
                 input.value = '';
                 renderCategoryTags();
             }
         }
         
         function removeCategoryTag(cat) {
+            // Prevent removing 'Other' to ensure Gemini always has a fallback
+            if (cat === 'Other') return alert("The 'Other' category is required.");
             localCategories = localCategories.filter(c => c !== cat);
             renderCategoryTags();
         }
