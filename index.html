@@ -425,13 +425,16 @@
             const cats = Object.keys(summary);
             catPicker.innerHTML = '<option value="">All Categories</option>' + 
                 cats.map(c => `<option value="${c}">${c}</option>`).join('');
+            return true;
         }
         
         function generateTxIdLocally(row) {
             return btoa(row.date + row.description + row.amount).substring(0, 16);
         }
-        async function fetchDrillDown() {
+       async function fetchDrillDown() {
             const month = document.getElementById('drill-month-picker').value;
+            if (!month) return; // Don't fetch if no month is selected
+        
             const selectedOptions = Array.from(document.getElementById('drill-category-picker').selectedOptions);
             const categories = selectedOptions.map(o => o.value).filter(v => v !== "").join(',');
         
@@ -440,28 +443,31 @@
             });
             const data = await res.json();
             const tableBody = document.getElementById('drill-table-body');
-            const symbol = globalPrefs.currency || "₹";
+            const symbol = globalPrefs.currency || "$";
         
             tableBody.innerHTML = data.length > 0 ? data.map(row => {
-            // We use the tx_id we generated in the backend as the document ID
-            const docId = row.id || generateTxIdLocally(row); 
-            
-            return `
-            <tr id="row-${docId}" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                <td style="padding: 12px; font-size: 0.85rem; color: var(--text-dim);">${row.date}</td>
-                <td style="padding: 12px;">${row.description}</td>
-                <td style="padding: 12px;" id="cat-cell-${docId}">
-                    <span class="category-badge">${row.category}</span>
-                </td>
-                <td style="padding: 12px; text-align: right; font-weight: 600;">${symbol}${row.amount.toFixed(2)}</td>
-                <td style="padding: 12px; text-align: right;">
-                    <button onclick="editCategory('${docId}', '${row.category}')" 
-                            style="padding: 4px 8px; font-size: 0.7rem; background: transparent; border: 1px solid var(--accent); color: var(--accent);">
-                        Edit
-                    </button>
-                </td>
-            </tr>
-        `;}).join('') : '<tr><td colspan="4" style="text-align:center; padding: 20px;">No transactions found.</td></tr>';
+                // Use row.id if backend provides it, otherwise fallback to local generation
+                const docId = row.id || generateTxIdLocally(row); 
+                
+                return `
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 12px; font-size: 0.85rem; color: var(--text-dim);">${row.date}</td>
+                        <td style="padding: 12px;">${row.description}</td>
+                        <td style="padding: 12px;" id="cat-cell-${docId}">
+                            <span style="background: rgba(187,134,252,0.1); color: var(--accent); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">
+                                ${row.category}
+                            </span>
+                        </td>
+                        <td style="padding: 12px; text-align: right; font-weight: 600;">${symbol}${row.amount.toFixed(2)}</td>
+                        <td style="padding: 12px; text-align: right;">
+                            <button onclick="editCategory('${docId}', '${row.category}')" 
+                                    style="padding: 4px 8px; font-size: 0.7rem; background: transparent; border: 1px solid var(--accent); color: var(--accent);">
+                                Edit
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('') : '<tr><td colspan="5" style="text-align:center; padding: 40px; color: var(--text-dim);">No transactions found for this selection.</td></tr>';
         }
 
         //const VALID_CATEGORIES = ["Food", "Transport", "Shopping", "Bills", "Entertainment", "Income", "Subscription", "Fuel", "Other"];
