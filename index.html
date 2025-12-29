@@ -368,8 +368,7 @@
                                 </div>
                             </div>
                     
-                            </div>
-                    
+                   
                             <div style="overflow-x: auto;">
                                 <table style="width: 100%; border-collapse: collapse; text-align: left;">
                                     <thead>
@@ -457,8 +456,7 @@
                 headers: { 'Authorization': `Bearer ${userToken}` }
             });
             const summary = await res.json();
-            const catPicker = document.getElementById('drill-category-picker');
-            
+            const chipContainer = document.getElementById('drill-category-chips');
             const cats = Object.keys(summary);
             // Build the Checkbox Chips
             chipContainer.innerHTML = cats.map(cat => `
