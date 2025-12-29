@@ -458,13 +458,17 @@
             const summary = await res.json();
             const chipContainer = document.getElementById('drill-category-chips');
             const cats = Object.keys(summary);
-            // Build the Checkbox Chips
-            chipContainer.innerHTML = cats.map(cat => `
-                <label class="chip-container">
-                    <input type="checkbox" name="drill-cat" value="${cat}" onchange="fetchDrillDown()">
-                    <span class="chip-label">${cat}</span>
-                </label>
-            `).join('');
+           // Use the global localCategories array we defined earlier
+            if (localCategories && localCategories.length > 0) {
+                chipContainer.innerHTML = localCategories.map(cat => `
+                    <label class="chip-container">
+                        <input type="checkbox" name="drill-cat" value="${cat}" onchange="fetchDrillDown()">
+                        <span class="chip-label">${cat}</span>
+                    </label>
+                `).join('');
+            } else {
+                chipContainer.innerHTML = '<p style="color:var(--text-dim);">Add categories in Settings first.</p>';
+            }
             return true;
         }
         
