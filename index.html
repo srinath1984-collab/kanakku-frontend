@@ -804,31 +804,54 @@ function renderLineChart(id, label, labels, data, color) {
     } catch (e) { console.error("Sync error", e); }
 }
 
-        async function fetchSummary() {
-            if (!userToken) return;
-            try {
-                list.classList.add('refreshing'); // Add visual feedback
-                const prefsRes = await fetch(`${BACKEND}/preferences`, {
-                    headers: { 'Authorization': `Bearer ${userToken}` }
-                });
-                const prefs = await prefsRes.json();
-                const currencySymbol = prefs.currency || "₹";
-                const selectedMonth = document.getElementById('month-picker').value;
-                const res = await fetch(`${BACKEND}/summary?month=${selectedMonth}`, {
-                    headers: { 'Authorization': `Bearer ${userToken}` }
-                });
-                const data = await res.json();
-                const list = document.getElementById('summary-list');
-                list.innerHTML = Object.entries(data).length > 0
-                    ? Object.entries(data).map(([cat, amt]) => `
-                            <div class="summary-item">
-                                <span>${cat}</span>
-                                <strong>${currencySymbol}${amt.toFixed(2)}</strong>
-                            </div>`).join('')
-                    : "No data yet. Upload some files!";
-                list.classList.remove('refreshing');
-            } catch (e) { console.error("Summary error", e); }
+async function fetchSummary() {
+    if (!userToken) return;
+
+    // 1. Define 'list' immediately so you can use it
+    const list = document.getElementById('summary-list');
+    const monthPicker = document.getElementById('month-picker');
+    
+    if (!list || !monthPicker) return;
+
+    try {
+        list.classList.add('refreshing'); 
+
+        // 2. Optimization: Use globalPrefs instead of a separate fetch
+        // If globalPrefs isn't loaded yet, default to "₹"
+        const currencySymbol = globalPrefs.currency || "₹";
+        const selectedMonth = monthPicker.value;
+
+        const res = await fetch(`${BACKEND}/summary?month=${selectedMonth}`, {
+            headers: { 'Authorization': `Bearer ${userToken}` }
+        });
+        
+        if (!res.ok) throw new Error("Failed to fetch summary");
+
+        const data = await res.json();
+
+        // 3. Render logic
+        if (Object.entries(data).length > 0) {
+            list.innerHTML = Object.entries(data).map(([cat, amt]) => {
+                // Safety check for amount
+                const safeAmt = typeof amt === 'number' ? amt : 0;
+                return `
+                    <div class="summary-item">
+                        <span>${cat}</span>
+                        <strong>${currencySymbol}${safeAmt.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>
+                    </div>`;
+            }).join('');
+        } else {
+            list.innerHTML = "<p style='text-align:center; color:var(--text-dim); padding:20px;'>No data for this month.</p>";
         }
+
+    } catch (e) { 
+        console.error("Summary error:", e);
+        list.innerHTML = "<p style='color:var(--danger);'>Error loading summary.</p>";
+    } finally {
+        // Ensure the refreshing class is removed even if the fetch fails
+        list.classList.remove('refreshing');
+    }
+}
 
         async function uploadFiles() {
             const input = document.getElementById('fileInput');
