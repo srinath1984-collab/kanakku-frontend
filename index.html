@@ -402,9 +402,11 @@
 
             if (tabId === 'analytics') renderAnalytics();
             if (tabId === 'drilldown') {
-                syncDrillDownControls();
+                syncDrillDownControls().then(() => {
+                    fetchDrillDown(); // <--- ADD THIS so data loads immediately
+                    });        
+                }
             }
-        }
 
         async function syncDrillDownControls() {
             // Sync month picker from the main dashboard
