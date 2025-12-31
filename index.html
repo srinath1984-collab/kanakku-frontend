@@ -875,6 +875,11 @@ async function fetchSummary() {
                     body: formData,
                     headers: { 'Authorization': `Bearer ${userToken}` }
                 });
+                if (!res.ok) {
+                    // Read the specific error message from the backend (e.g., "File too large")
+                    const errorData = await res.json();
+                    throw new Error(errorData.detail || "Upload failed");
+                }
                 const blob = await res.blob();
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -884,6 +889,11 @@ async function fetchSummary() {
                 await loadMonthPicker();
 
             } catch (e) {
+                notifyArea.style.background = 'rgba(207, 102, 121, 0.1)';
+                notifyArea.style.color = 'var(--danger)';
+                notifyIcon.innerHTML = '❌';
+                // SHOW THE ACTUAL ERROR
+                notifyText.innerText = e.message;
                 alert("Upload failed.");
             }
         }
