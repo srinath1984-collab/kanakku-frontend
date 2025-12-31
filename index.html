@@ -789,14 +789,16 @@ function renderLineChart(id, label, labels, data, color) {
         });
 
         if (res.ok) {
-            globalPrefs = await res.json(); // Update the GLOBAL variable
+            const data = await res.json(); // Update the GLOBAL variable
+            globalPrefs = data;
             
             // Set dropdowns
             document.getElementById('pref-currency').value = globalPrefs.currency || "₹";
             document.getElementById('pref-dayfirst').value = (globalPrefs.dayfirst !== undefined) ? globalPrefs.dayfirst.toString() : "true";
             // Sync the master list
-            if (data.categories) {
-                localCategories = data.categories;
+            if (globalPrefs.categories && globalPrefs.categories.length > 0) {
+                localCategories = globalPrefs.categories;
+                console.log("Categories loaded from DB:", localCategories);
                 renderCategoryTags(); // Update Settings UI
             }
             fetchSummary();
