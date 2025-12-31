@@ -741,7 +741,7 @@ function renderLineChart(id, label, labels, data, color) {
             renderCategoryTags();
         }
 
-        function handleLogin(response) {
+        async function handleLogin(response) {
             console.log("inside handlelogin");
             userToken = response.credential;
             const payload = JSON.parse(atob(userToken.split('.')[1]));
@@ -863,6 +863,9 @@ async function fetchSummary() {
 
         async function uploadFiles() {
             const input = document.getElementById('fileInput');
+            const notifyArea = document.getElementById('upload-notification'); 
+        const notifyText = document.getElementById('notification-text');
+        const notifyIcon = document.getElementById('notification-icon');
             if (input.files.length === 0) return;
 
             const formData = new FormData();
