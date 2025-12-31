@@ -286,6 +286,17 @@
                             </div>
                             <div class="card">
                                 <h2>Actions</h2>
+                                <div style="margin-bottom: 15px;">
+                                    <label style="font-size: 0.75rem; color: var(--accent); letter-spacing: 1px; display:block; margin-bottom:8px;">
+                                        CSV STRUCTURE & POLARITY
+                                    </label>
+                                    <select id="import-mode" style="width: 100%;">
+                                        <option value="auto">Auto-Detect (Recommended)</option>
+                                        <option value="explicit">Two Columns (Separate Debit & Credit)</option>
+                                        <option value="standard">Single Amount: Positive is Income (Bank style)</option>
+                                        <option value="inverted">Single Amount: Positive is Expense (CC style)</option>
+                                    </select>
+                                </div>
                                 <div class="dropzone" onclick="document.getElementById('fileInput').click()">
                                     <input type="file" id="fileInput" multiple style="display:none"
                                         onchange="uploadFiles()">
@@ -863,12 +874,15 @@ async function fetchSummary() {
 
         async function uploadFiles() {
             const input = document.getElementById('fileInput');
+            const modeDropdown = document.getElementById('import-mode');
             const notifyArea = document.getElementById('upload-notification'); 
         const notifyText = document.getElementById('notification-text');
         const notifyIcon = document.getElementById('notification-icon');
             if (input.files.length === 0) return;
 
             const formData = new FormData();
+            
+            formData.append('import_mode', modeDropdown.value);
             for (let f of input.files) formData.append('files', f);
 
 
