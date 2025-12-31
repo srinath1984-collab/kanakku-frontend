@@ -242,11 +242,12 @@
                 <div class="g_id_signin" data-type="standard"></div>
 
                 <div style="color: var(--text-dim);">or</div>
-
+                <!--
                 <button onclick="enterGuestMode()"
                     style="background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim);">
                     Continue as Guest
                 </button>
+                -->
             </div>
         </div>
 
@@ -732,8 +733,12 @@ function renderLineChart(id, label, labels, data, color) {
         function enterGuestMode() {
             userToken = "GUEST_USER"; // Backend should handle this as a separate namespace
             document.getElementById('user-display').innerText = "Guest Workspace";
+           // Set default view values so the UI doesn't look broken
+            globalPrefs = { currency: "₹", dayfirst: true };
+            localCategories = ["Food", "Transport", "Shopping", "Bills", "Income", "Other"];
+            
             showScreen('screen-dashboard');
-            // Note: In guest mode, data might not persist unless you use LocalStorage
+            renderCategoryTags();
         }
 
         function handleLogin(response) {
@@ -743,7 +748,7 @@ function renderLineChart(id, label, labels, data, color) {
             document.getElementById('user-display').innerText = payload.email;
             showScreen('screen-dashboard');
             console.log("syncing pref");
-            syncPreferences();
+            await syncPreferences();
             console.log("loading month picker");
             loadMonthPicker();
             renderCategoryTags(); 
@@ -783,6 +788,7 @@ function renderLineChart(id, label, labels, data, color) {
         }
 
        async function syncPreferences() {
+           if (userToken === "GUEST_USER") return; // Skip DB fetch for guest
     try {
         const res = await fetch(`${BACKEND}/preferences`, {
             headers: { 'Authorization': `Bearer ${userToken}` }
