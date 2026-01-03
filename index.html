@@ -859,6 +859,7 @@ async function fetchSummary() {
 
         const data = await res.json();
         // Update the Highlight Cards
+        const symbol = globalPrefs.currency || "₹]$";
         document.getElementById('display-total-income').innerText = `${symbol}${data.total_income.toFixed(2)}`;
         document.getElementById('display-total-expense').innerText = `${symbol}${data.total_expense.toFixed(2)}`;
         const breakdown = data.breakdown;
