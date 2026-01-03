@@ -423,7 +423,7 @@
         let globalPrefs = { currency: "$", dayfirst: false }; // ADDED THIS GLOBAL VARIABLE
         let chartInstances = {}; // Track charts to prevent "Canvas already in use" errors
 
-        let localCategories = ["Food", "Transport", "Shopping", "Bills", "Entertainment", "Income", "Subscription", "Fuel", "Other"];
+        let localCategories = ["Groceries", "Dining", "Transport", "Shopping", "Bills", "Entertainment", "Income", "Subscription", "Fuel", "Other"];
 
        // Ensure this is called in handleLogin
         function renderCategoryTags() {
@@ -757,7 +757,7 @@ function renderLineChart(id, label, labels, data, color) {
             document.getElementById('user-display').innerText = "Guest Workspace";
            // Set default view values so the UI doesn't look broken
             globalPrefs = { currency: "₹", dayfirst: true };
-            localCategories = ["Food", "Transport", "Shopping", "Bills", "Income", "Other"];
+            localCategories = ["Groceries", "Dining", "Transport", "Shopping", "Bills", "Income", "Other"];
             
             showScreen('screen-dashboard');
             renderCategoryTags();
