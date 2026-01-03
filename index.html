@@ -864,8 +864,8 @@ async function fetchSummary() {
         document.getElementById('display-total-expense').innerText = `${symbol}${data.total_expense.toFixed(2)}`;
         const breakdown = data.breakdown;
         // 3. Render logic
-        if (Object.entries(data).length > 0) {
-            list.innerHTML = Object.entries(data).map(([cat, amt]) => {
+        if (Object.entries(breakdown).length > 0) {
+            list.innerHTML = Object.entries(breakdown).map(([cat, amt]) => {
                 // Safety check for amount
                 const safeAmt = typeof amt === 'number' ? amt : 0;
                 return `
