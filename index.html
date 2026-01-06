@@ -601,83 +601,91 @@
             }
         }
 
-       async function renderAnalytics() {
-    const res = await fetch(`${BACKEND}/analytics`, {
-        headers: { 'Authorization': `Bearer ${userToken}` }
-    });
-    const history = await res.json();
-    
-    const months = Object.keys(history).sort(); 
-    if (months.length === 0) return;
-
-    // Get all unique categories across all months
-    const categories = [...new Set(months.flatMap(m => Object.keys(history[m])))];
-
-    // 1. CHART: TOTAL EXPENDITURE (Excluding 'Income' category)
-    // Extract the totals for the Line Chart
-    const incomeData = months.map(m => history[m].total_income);
-    const expenseData = months.map(m => history[m].total_expense);
-
-    const ctx = document.getElementById('analyticsChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar', // Base type is bar for categories
-        data: {
-            labels: months,
-            datasets: [
-                {
-                    label: 'Total Income',
-                    data: incomeData,
-                    type: 'line', // Override to line
-                    borderColor: '#03dac6', // Teal
-                    backgroundColor: 'transparent',
-                    borderWidth: 3,
-                    order: 0 // Keep on top
-                },
-                {
-                    label: 'Total Expenses',
-                    data: expenseData,
-                    type: 'line', // Override to line
-                    borderColor: '#cf6679', // Rose/Red
-                    backgroundColor: 'transparent',
-                    borderWidth: 3,
-                    order: 1
-                }
-                // (Optional: You can add category bars here as well)
-            ]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { position: 'top', labels: { color: '#fff' } }
-            },
-            scales: {
-                y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#fff' } },
-                x: { grid: { display: false }, ticks: { color: '#fff' } }
-            }
-        }
-    });
-
-    // 2. GENERATE CATEGORY GRIDS
-    const grid = document.getElementById('category-charts-grid');
-    grid.innerHTML = ''; 
-    
-    categories.forEach(cat => {
-        if (cat === "total_income" || cat === "total_expense") return; // Skip income here, maybe give it a special chart later
-
-        const safeId = `chart-${cat.replace(/\s+/g, '-')}`;
-        const container = document.createElement('div');
-        container.className = 'card';
-        container.innerHTML = `<h3 style="color: var(--text-dim); font-size: 0.9rem;">${cat.toUpperCase()}</h3>
-                               <div style="height: 150px;"><canvas id="${safeId}"></canvas></div>`;
-        grid.appendChild(container);
-
-        const catData = months.map(m => history[m][cat] || 0);
+      async function renderAnalytics() {
+    try {
+        const res = await fetch(`${BACKEND}/analytics`, {
+            headers: { 'Authorization': `Bearer ${userToken}` }
+        });
+        const history = await res.json();
         
-        // Wait for the DOM to catch up before rendering
-        setTimeout(() => {
-            renderLineChart(safeId, cat, months, catData, '#03dac6');
-        }, 0);
-    });
+        const months = Object.keys(history).sort(); 
+        if (months.length === 0) {
+            console.warn("No data found for analytics");
+            return;
+        }
+
+        // Clean up previous main chart instance
+        const oldMainChart = Chart.getChart("analyticsChart");
+        if (oldMainChart) oldMainChart.destroy();
+
+        // Fix: Use 'history' instead of 'data'
+        const incomeData = months.map(m => history[m].total_income || 0);
+        const expenseData = months.map(m => history[m].total_expense || 0);
+
+        const ctx = document.getElementById('analyticsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: months,
+                datasets: [
+                    {
+                        label: 'Total Income',
+                        data: incomeData,
+                        type: 'line',
+                        borderColor: '#03dac6',
+                        backgroundColor: 'transparent',
+                        borderWidth: 3,
+                        tension: 0.4 // Makes the line smooth
+                    },
+                    {
+                        label: 'Total Expenses',
+                        data: expenseData,
+                        type: 'line',
+                        borderColor: '#cf6679',
+                        backgroundColor: 'transparent',
+                        borderWidth: 3,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa' } },
+                    x: { grid: { display: false }, ticks: { color: '#aaa' } }
+                }
+            }
+        });
+
+        // 2. CATEGORY GRIDS
+        const categories = [...new Set(months.flatMap(m => Object.keys(history[m])))];
+        const grid = document.getElementById('category-charts-grid');
+        grid.innerHTML = ''; 
+        
+        categories.forEach(cat => {
+            // Filter out system keys
+            if (["total_income", "total_expense", "Income", "Excluded"].includes(cat)) return;
+
+            const safeId = `chart-${cat.replace(/\s+/g, '-')}`;
+            const container = document.createElement('div');
+            container.className = 'card';
+            container.innerHTML = `
+                <h3 style="color: var(--text-dim); font-size: 0.8rem; margin-bottom:10px;">${cat.toUpperCase()}</h3>
+                <div style="height: 120px;"><canvas id="${safeId}"></canvas></div>
+            `;
+            grid.appendChild(container);
+
+            const catData = months.map(m => history[m][cat] || 0);
+            
+            // Use requestAnimationFrame for cleaner DOM timing
+            requestAnimationFrame(() => {
+                renderLineChart(safeId, cat, months, catData, '#bb86fc');
+            });
+        });
+    } catch (err) {
+        console.error("Analytics rendering failed:", err);
+    }
 }
 
 function renderLineChart(id, label, labels, data, color) {
