@@ -662,7 +662,7 @@
     grid.innerHTML = ''; 
     
     categories.forEach(cat => {
-        if (cat === "total_income" || cat === "total_expense) return; // Skip income here, maybe give it a special chart later
+        if (cat === "total_income" || cat === "total_expense") return; // Skip income here, maybe give it a special chart later
 
         const safeId = `chart-${cat.replace(/\s+/g, '-')}`;
         const container = document.createElement('div');
