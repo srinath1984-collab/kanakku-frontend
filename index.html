@@ -615,8 +615,8 @@
 
     // 1. CHART: TOTAL EXPENDITURE (Excluding 'Income' category)
     // Extract the totals for the Line Chart
-    const incomeData = months.map(m => data[m].total_income);
-    const expenseData = months.map(m => data[m].total_expense);
+    const incomeData = months.map(m => history[m].total_income);
+    const expenseData = months.map(m => history[m].total_expense);
 
     const ctx = document.getElementById('analyticsChart').getContext('2d');
     new Chart(ctx, {
