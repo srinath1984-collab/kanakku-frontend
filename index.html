@@ -614,19 +614,55 @@
     const categories = [...new Set(months.flatMap(m => Object.keys(history[m])))];
 
     // 1. CHART: TOTAL EXPENDITURE (Excluding 'Income' category)
-    const totals = months.map(m => {
-        return Object.entries(history[m])
-            .filter(([cat, amt]) => cat !== "Income")
-            .reduce((sum, [cat, amt]) => sum + amt, 0);
+    // Extract the totals for the Line Chart
+    const incomeData = months.map(m => data[m].total_income);
+    const expenseData = months.map(m => data[m].total_expense);
+
+    const ctx = document.getElementById('analyticsChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar', // Base type is bar for categories
+        data: {
+            labels: months,
+            datasets: [
+                {
+                    label: 'Total Income',
+                    data: incomeData,
+                    type: 'line', // Override to line
+                    borderColor: '#03dac6', // Teal
+                    backgroundColor: 'transparent',
+                    borderWidth: 3,
+                    order: 0 // Keep on top
+                },
+                {
+                    label: 'Total Expenses',
+                    data: expenseData,
+                    type: 'line', // Override to line
+                    borderColor: '#cf6679', // Rose/Red
+                    backgroundColor: 'transparent',
+                    borderWidth: 3,
+                    order: 1
+                }
+                // (Optional: You can add category bars here as well)
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top', labels: { color: '#fff' } }
+            },
+            scales: {
+                y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#fff' } },
+                x: { grid: { display: false }, ticks: { color: '#fff' } }
+            }
+        }
     });
-    renderLineChart('totalExpenditureChart', 'Monthly Expenses', months, totals, '#bb86fc');
 
     // 2. GENERATE CATEGORY GRIDS
     const grid = document.getElementById('category-charts-grid');
     grid.innerHTML = ''; 
     
     categories.forEach(cat => {
-        if (cat === "Income") return; // Skip income here, maybe give it a special chart later
+        if (cat === "total_income" || cat === "total_expense) return; // Skip income here, maybe give it a special chart later
 
         const safeId = `chart-${cat.replace(/\s+/g, '-')}`;
         const container = document.createElement('div');
