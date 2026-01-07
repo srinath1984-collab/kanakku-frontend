@@ -225,6 +225,15 @@
             pointer-events: none;
             transition: opacity 0.2s ease;
         }
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(18, 18, 18, 0.9); backdrop-filter: blur(8px);
+            z-index: 9999; display: flex; align-items: center; justify-content: center;
+        }
+        .danger-zone { border: 1px solid #cf6679; }
+        .btn-danger { background: #cf6679; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        .btn-warning { background: #ffb74d; color: #121212; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; }
+        .text-dim { color: #aaa; font-size: 0.85rem; margin-bottom: 15px; }
     </style>
 </head>
 
@@ -371,6 +380,45 @@
                                 Save All Changes
                             </button>
                         </div>
+                        <div id="maintenance-overlay" class="overlay" style="display:none;">
+                            <div class="loader-content">
+                                <div class="spinner"></div>
+                                <p id="maintenance-msg">Kanakku is learning... Please wait.</p>
+                            </div>
+                        </div>
+                    
+                        <div class="card danger-zone">
+                            <h2><i class="fas fa-exclamation-triangle"></i> Danger Zone</h2>
+                            <p class="text-dim">These actions are permanent. Proceed with caution.</p>
+                            
+                            <div class="settings-group">
+                                <h3>Account Purge</h3>
+                                <label><input type="checkbox" id="purge-data"> Delete all transactions & vector library</label><br>
+                                <label><input type="checkbox" id="purge-rules"> Reset all Smart Rules (Tier 1)</label><br>
+                                <label><input type="checkbox" id="purge-settings"> Reset categories & currency settings</label>
+                                <button onclick="openPurgeModal()" class="btn-danger">Purge Selected Data</button>
+                            </div>
+                    
+                            <hr>
+                    
+                            <div class="settings-group">
+                                <h3>Intelligent Recategorize</h3>
+                                <p class="text-dim">Re-runs all existing transactions through the Tier 3 (Gemini) engine using your latest category list.</p>
+                                <button onclick="triggerRecategorize()" class="btn-warning">Recategorize All Data</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="purge-modal" class="modal" style="display:none;">
+                        <div class="modal-content card">
+                            <h3>Are you absolutely sure?</h3>
+                            <p>This will permanently wipe the selected data. This action cannot be undone.</p>
+                            <p>Please type <b>PURGE</b> to confirm:</p>
+                            <input type="text" id="purge-confirm-input" placeholder="PURGE">
+                            <div class="modal-actions">
+                                <button onclick="closePurgeModal()" class="btn-secondary">Cancel</button>
+                                <button id="final-purge-btn" onclick="executePurge()" class="btn-danger" disabled>I understand, delete my data</button>
+                            </div>
+                        </div>
                     </div>
                   
                     <div id="tab-drilldown" class="tab-content" style="display:none;">
@@ -424,7 +472,72 @@
         let chartInstances = {}; // Track charts to prevent "Canvas already in use" errors
 
         let localCategories = ["Groceries", "Dining", "Transport", "Shopping", "Bills", "Entertainment", "Income", "Subscription", "Fuel", "Other"];
-
+        // --- PURGE LOGIC ---
+        function openPurgeModal() {
+            document.getElementById('purge-modal').style.display = 'flex';
+        }
+        
+        function closePurgeModal() {
+            document.getElementById('purge-modal').style.display = 'none';
+            document.getElementById('purge-confirm-input').value = '';
+        }
+        
+        // Enable button only if user types PURGE
+        document.getElementById('purge-confirm-input').addEventListener('input', (e) => {
+            document.getElementById('final-purge-btn').disabled = (e.target.value !== 'PURGE');
+        });
+        
+        async function executePurge() {
+            const options = {
+                purge_data: document.getElementById('purge-data').checked,
+                purge_rules: document.getElementById('purge-rules').checked,
+                purge_settings: document.getElementById('purge-settings').checked
+            };
+        
+            toggleMaintenance(true, "Purging selected data...");
+            
+            const res = await fetch(`${BACKEND}/purge`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userToken}` 
+                },
+                body: JSON.stringify(options)
+            });
+        
+            if (res.ok) {
+                alert("Purge complete. The page will now reload.");
+                window.location.reload();
+            }
+            toggleMaintenance(false);
+        }
+        
+        // --- RECATEGORIZE LOGIC ---
+        async function triggerRecategorize() {
+            if (!confirm("This will re-run AI on all transactions. This may take a minute. Continue?")) return;
+        
+            toggleMaintenance(true, "Gemini is re-analyzing your finances... Please do not close this tab.");
+        
+            try {
+                const res = await fetch(`${BACKEND}/recategorize`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${userToken}` }
+                });
+                const data = await res.json();
+                alert(`Successfully recategorized ${data.count} transactions!`);
+            } catch (e) {
+                alert("Recategorization failed. Check console for details.");
+            } finally {
+                toggleMaintenance(false);
+                renderExpenses(); // Refresh the list
+            }
+        }
+        
+        function toggleMaintenance(show, msg = "") {
+            const overlay = document.getElementById('maintenance-overlay');
+            document.getElementById('maintenance-msg').innerText = msg;
+            overlay.style.display = show ? 'flex' : 'none';
+        }
        // Ensure this is called in handleLogin
         function renderCategoryTags() {
             const container = document.getElementById('category-tags');
