@@ -615,14 +615,14 @@
         }
 
         // Clean up previous main chart instance
-        const oldMainChart = Chart.getChart("analyticsChart");
+        const oldMainChart = Chart.getChart("totalExpenditureChart");
         if (oldMainChart) oldMainChart.destroy();
 
         // Fix: Use 'history' instead of 'data'
         const incomeData = months.map(m => history[m].total_income || 0);
         const expenseData = months.map(m => history[m].total_expense || 0);
 
-        const ctx = document.getElementById('analyticsChart').getContext('2d');
+        const ctx = document.getElementById('totalExpenditureChart').getContext('2d');
         new Chart(ctx, {
             type: 'bar',
             data: {
