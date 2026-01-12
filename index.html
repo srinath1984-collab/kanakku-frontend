@@ -322,6 +322,10 @@
                                         onchange="uploadFiles()">
                                     Upload CSV
                                 </div>
+                                <div id="loading-spinner" style="display:none;">
+                                    <div class="loader"></div>
+                                    <p id="loading-text">Uploading file...</p>
+                                </div>
                                 <button onclick="downloadReport()" style="width: 100%; margin-top: 20px;">Download
                                     CSV</button>
                             </div>
@@ -1053,8 +1057,14 @@ async function fetchSummary() {
             const notifyArea = document.getElementById('upload-notification'); 
         const notifyText = document.getElementById('notification-text');
         const notifyIcon = document.getElementById('notification-icon');
+            const spinner = document.getElementById('loading-spinner');
+            const text = document.getElementById('loading-text');
+            
             if (input.files.length === 0) return;
-
+// UI Change: Start Loading
+    btn.disabled = true;
+    spinner.style.display = "block";
+    text.innerText = "Uploading to server...";
             const formData = new FormData();
             
             for (let f of input.files) formData.append('files', f);
@@ -1072,6 +1082,8 @@ async function fetchSummary() {
                     throw new Error(errorData.detail || "Upload failed");
                 }
                 const blob = await res.blob();
+                btn.disabled = false;
+            spinner.style.display = "none";
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
