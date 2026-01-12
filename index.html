@@ -404,7 +404,9 @@
                             <div class="settings-group">
                                 <h3>Intelligent Recategorize</h3>
                                 <p class="text-dim">Re-runs all existing transactions through the Tier 3 (Gemini) engine using your latest category list.</p>
-                                <button onclick="triggerRecategorize()" class="btn-warning">Recategorize All Data</button>
+                                <button onclick="triggerRecategorize()" class="btn-sync">
+                                    <i class="fas fa-sync"></i> Re-apply Smart Rules
+                                </button>                                
                             </div>
                         </div>
                     </div>
@@ -514,23 +516,25 @@
         
         // --- RECATEGORIZE LOGIC ---
         async function triggerRecategorize() {
-            if (!confirm("This will re-run AI on all transactions. This may take a minute. Continue?")) return;
+                   const btn = document.querySelector('.btn-sync');
+            btn.disabled = true;
+            btn.innerHTML = "Syncing...";
         
-            toggleMaintenance(true, "Gemini is re-analyzing your finances... Please do not close this tab.");
+            const res = await fetch(`${BACKEND}/recategorize-all`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: userEmail })
+            });
         
-            try {
-                const res = await fetch(`${BACKEND}/recategorize`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${userToken}` }
-                });
-                const data = await res.json();
-                alert(`Successfully recategorized ${data.count} transactions!`);
-            } catch (e) {
-                alert("Recategorization failed. Check console for details.");
-            } finally {
-                toggleMaintenance(false);
-                renderExpenses(); // Refresh the list
-            }
+            const data = await res.json();
+            showToast(data.message);
+            
+            // Refresh the local UI after a short delay
+            setTimeout(() => {
+                renderExpenses();
+                btn.disabled = false;
+                btn.innerHTML = "Re-apply Smart Rules";
+            }, 2000);
         }
         
         function toggleMaintenance(show, msg = "") {
@@ -1083,6 +1087,32 @@ async function fetchSummary() {
                 notifyText.innerText = e.message;
                 alert("Upload failed.");
             }
+        }
+
+                // This runs once when the app loads
+        function attachSyncListener() {
+            const statusRef = doc(db, "users", userEmail, "status", "sync");
+        
+            // This callback fires EVERY time the document changes in Firestore
+            onSnapshot(statusRef, (snapshot) => {
+                const data = snapshot.data();
+                if (!data) return;
+        
+                const btn = document.querySelector('.btn-sync');
+        
+                if (data.status === "processing") {
+                    btn.innerHTML = "AI is thinking...";
+                    btn.disabled = true;
+                } 
+                else if (data.status === "completed") {
+                    btn.innerHTML = "Re-apply Smart Rules";
+                    btn.disabled = false;
+                    
+                    // AUTOMATIC REFRESH
+                    renderExpenses(); 
+                    showToast("Kalana has finished recategorizing!");
+                }
+            });
         }
 
         async function addRule() {
