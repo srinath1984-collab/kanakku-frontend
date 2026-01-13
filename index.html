@@ -234,6 +234,35 @@
         .btn-danger { background: #cf6679; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
         .btn-warning { background: #ffb74d; color: #121212; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; }
         .text-dim { color: #aaa; font-size: 0.85rem; margin-bottom: 15px; }
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+        
+        .toast {
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .toast.success { border-left: 5px solid #4CAF50; }
+        .toast.error { border-left: 5px solid #F44336; }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .fade-out {
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
     </style>
 </head>
 
@@ -524,7 +553,7 @@
             btn.disabled = true;
             btn.innerHTML = "Syncing...";
         
-            const res = await fetch(`${BACKEND}/recategorize-all`, {
+            const res = await fetch(`${BACKEND}/recategorize`, {
                 method: 'POST',
                headers: { 
                     'Content-Type': 'application/json',
@@ -867,6 +896,30 @@ function renderLineChart(id, label, labels, data, color) {
         }
     });
 }
+
+        function showToast(message, type = 'success') {
+    // Create the toast element
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerText = message;
+
+    // Add it to a container (or body)
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        document.body.appendChild(container);
+    }
+    
+    container.appendChild(toast);
+
+    // Remove it after 3 seconds
+    setTimeout(() => {
+        toast.classList.add('fade-out');
+        setTimeout(() => toast.remove(), 500);
+    }, 3000);
+}
+        
         async function savePreferences() {
             const prefs = {
                 currency: document.getElementById('pref-currency').value,
