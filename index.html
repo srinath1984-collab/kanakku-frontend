@@ -526,8 +526,10 @@
         
             const res = await fetch(`${BACKEND}/recategorize-all`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: userEmail })
+               headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userToken}` 
+                },
             });
         
             const data = await res.json();
