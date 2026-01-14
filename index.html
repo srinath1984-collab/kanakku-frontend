@@ -566,7 +566,7 @@
             
             // Refresh the local UI after a short delay
             setTimeout(() => {
-                renderExpenses();
+                fetchSummary();
                 btn.disabled = false;
                 btn.innerHTML = "Re-apply Smart Rules";
             }, 2000);
@@ -1176,7 +1176,7 @@ async function fetchSummary() {
                     btn.disabled = false;
                     
                     // AUTOMATIC REFRESH
-                    renderExpenses(); 
+                    fetchSummary(); 
                     showToast("Kalana has finished recategorizing!");
                 }
             });
