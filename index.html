@@ -1117,7 +1117,7 @@ async function fetchSummary() {
             
             if (input.files.length === 0) return;
 // UI Change: Start Loading
-    btn.disabled = true;
+    //btn.disabled = true;
     spinner.style.display = "block";
     text.innerText = "Uploading to server...";
             const formData = new FormData();
@@ -1137,7 +1137,7 @@ async function fetchSummary() {
                     throw new Error(errorData.detail || "Upload failed");
                 }
                 const blob = await res.blob();
-                btn.disabled = false;
+                //btn.disabled = false;
             spinner.style.display = "none";
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
