@@ -6,203 +6,109 @@
     <title>Kalana - Personalized Expenses</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            /* New "Deep Ocean" Palette */
-            --bg-color: #0f172a;        /* Deep Slate Blue-Gray */
-            --card-bg: #1e293b;        /* Lighter Slate */
-            --text-main: #f8fafc;      /* Crisp White-Blue */
-            --text-dim: #94a3b8;       /* Muted Slate */
-            --accent: #22d3ee;         /* Vibrant Cyan */
-            --accent-hover: #0891b2;
-            --danger: #fb7185;         /* Soft Rose Red */
-            --border: rgba(255, 255, 255, 0.06);
-        }
+   <style>
+    :root {
+        --bg-color: #0f172a; 
+        --card-bg: #1e293b;
+        --sidebar-bg: #111827;
+        --text-main: #f8fafc;
+        --text-dim: #94a3b8;
+        --accent: #22d3ee;
+        --accent-hover: #0891b2;
+        --danger: #fb7185;
+        --border: rgba(255, 255, 255, 0.06);
+    }
 
-        body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background-color: var(--bg-color);
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(34, 211, 238, 0.08) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(34, 211, 238, 0.05) 0px, transparent 50%);
-            color: var(--text-main);
-            margin: 0;
-            padding: 40px 20px;
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-            line-height: 1.6;
-        }
+    body {
+        font-family: 'Inter', system-ui, sans-serif;
+        background-color: var(--bg-color);
+        margin: 0;
+        display: flex; /* This creates the Sidebar/Content split */
+        min-height: 100vh;
+        color: var(--text-main);
+    }
 
-        .container {
-            max-width: 960px;
-            width: 100%;
-        }
+    /* 1. Fixed Sidebar - Prevents Rearranging */
+    nav {
+        width: 260px;
+        background: var(--sidebar-bg);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        padding: 40px 20px;
+        flex-shrink: 0; /* Prevents sidebar from squishing */
+        height: 100vh;
+        position: sticky;
+        top: 0;
+    }
 
-        .card {
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            padding: 32px;
-            border-radius: 24px; /* More rounded for a modern feel */
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
-            margin-bottom: 28px;
-            border: 1px solid var(--border);
-            position: relative;
-            overflow: visible;
-            transition: transform 0.2s ease, border-color 0.2s ease;
-        }
+    .nav-item {
+        width: 100%; /* Forces all buttons to be the same width */
+        text-align: left;
+        background: transparent;
+        color: var(--text-dim);
+        padding: 14px 18px;
+        margin-bottom: 10px;
+        border-radius: 12px;
+        border: 1px solid transparent;
+        cursor: pointer;
+        font-weight: 600;
+        display: block; /* Blocks instead of inline-flex prevents jumping */
+        transition: all 0.2s ease;
+    }
 
-        .card:hover {
-            border-color: rgba(34, 211, 238, 0.3);
-        }
+    .nav-item.active {
+        background: rgba(34, 211, 238, 0.1);
+        color: var(--accent);
+        border-color: rgba(34, 211, 238, 0.2);
+    }
 
-        h1, h2 {
-            margin-top: 0;
-            font-weight: 800;
-            letter-spacing: -0.025em;
-        }
+    /* 2. Main Content Spacing */
+    main {
+        flex-grow: 1;
+        padding: 60px 80px; /* Generous padding fixes 'crowded' feel */
+        max-width: 1200px;
+    }
 
-        h1 {
-            color: #fff;
-            font-size: 2.25rem;
-            background: linear-gradient(to right, #fff, var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+    .card {
+        background: var(--card-bg);
+        padding: 32px;
+        border-radius: 24px;
+        border: 1px solid var(--border);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+    }
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
-        }
+    h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 40px;
+        letter-spacing: -0.02em;
+    }
 
-        /* Modern Tactile Buttons */
-        button {
-            background: var(--accent);
-            color: #083344; /* Darker contrast for Cyan */
-            border: none;
-            padding: 14px 28px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 700;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 6px -1px rgba(34, 211, 238, 0.2);
-        }
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 30px; /* Increased gap for breathing room */
+    }
 
-        button:hover {
-            background: #fff;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(34, 211, 238, 0.3);
-        }
+    /* 3. Button Stability */
+    button:not(.nav-item) {
+        background: var(--accent);
+        color: #083344;
+        border: none;
+        padding: 14px 28px;
+        border-radius: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.2s;
+    }
 
-        .signout-btn {
-            background: rgba(251, 113, 133, 0.1);
-            color: var(--danger);
-            border: 1px solid rgba(251, 113, 133, 0.2);
-            box-shadow: none;
-        }
-
-        .signout-btn:hover {
-            background: var(--danger);
-            color: #fff;
-            box-shadow: 0 10px 15px -3px rgba(251, 113, 133, 0.3);
-        }
-
-        /* File Dropzone Upgrade */
-        .dropzone {
-            border: 2px dashed var(--border);
-            padding: 48px;
-            text-align: center;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.02);
-            transition: all 0.3s ease;
-            color: var(--text-dim);
-            font-weight: 500;
-        }
-
-        .dropzone:hover {
-            border-color: var(--accent);
-            background: rgba(34, 211, 238, 0.03);
-            color: var(--accent);
-        }
-
-        .summary-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 16px 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .summary-item strong {
-            color: var(--accent);
-            font-weight: 600;
-        }
-
-        /* Sophisticated Inputs */
-        select, input[type="text"] {
-            background-color: rgba(15, 23, 42, 0.5);
-            color: var(--text-main);
-            border: 1px solid var(--border);
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            outline: none;
-            transition: all 0.2s ease;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 14px center;
-            background-size: 16px;
-        }
-
-        select:focus, input[type="text"]:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1);
-        }
-
-        .nav-item {
-            padding: 14px 18px;
-            border-radius: 12px;
-            font-weight: 600;
-        }
-
-        .nav-item.active {
-            background: rgba(34, 211, 238, 0.1);
-            color: var(--accent);
-            border: 1px solid rgba(34, 211, 238, 0.2);
-        }
-
-        .chip-label {
-            padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border);
-            border-radius: 100px;
-            color: var(--text-dim);
-            font-weight: 500;
-        }
-
-        .chip-container input:checked ~ .chip-label {
-            background: var(--accent);
-            border-color: var(--accent);
-            color: #083344;
-            box-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
-        }
-
-        .overlay {
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(16px);
-        }
-
-        .toast {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 16px 24px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-        }
-
-        .toast.success { border-left: 4px solid var(--accent); }
-    </style>
+    button:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.1);
+    }
+</style>
 </head>
 
 <body>
@@ -238,13 +144,12 @@
                         <h2 style="margin: 0; font-size: 1.2rem; color: var(--accent);">Kalana</h2>
                     </div>
 
-                    <div style="flex-grow: 1;">
-                        <button onclick="switchTab('main')" class="nav-item active" id="btn-nav-main">🏠 Overview</button>
-                        <button onclick="switchTab('analytics')" class="nav-item" id="btn-nav-analytics">📊
-                            Analytics</button>
-                        <button onclick="switchTab('settings')" class="nav-item" id="btn-nav-settings">⚙️ Settings</button>
-                        <button onclick="switchTab('drilldown')" class="nav-item" id="btn-nav-drilldown">🔍 Drill Down</button>
-                    </div>
+                <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 4px;">
+                    <button onclick="switchTab('main')" class="nav-item active" id="btn-nav-main">🏠 Overview</button>
+                    <button onclick="switchTab('analytics')" class="nav-item" id="btn-nav-analytics">📊 Analytics</button>
+                    <button onclick="switchTab('settings')" class="nav-item" id="btn-nav-settings">⚙️ Settings</button>
+                    <button onclick="switchTab('drilldown')" class="nav-item" id="btn-nav-drilldown">🔍 Drill Down</button>
+                </div>
 
                     <div style="border-top: 1px solid rgba(255,255,255,0.05); pt: 20px;">
                         <p id="user-display" style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 10px;"></p>
