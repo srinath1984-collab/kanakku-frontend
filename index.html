@@ -6,7 +6,7 @@
     <title>Kalana - Personalized Expenses</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-   <style>
+ <style>
     :root {
         --bg-color: #0f172a; 
         --card-bg: #1e293b;
@@ -23,12 +23,39 @@
         font-family: 'Inter', system-ui, sans-serif;
         background-color: var(--bg-color);
         margin: 0;
-        display: flex; /* This creates the Sidebar/Content split */
+        /* Flex is only for when the dashboard is visible */
+        display: flex; 
         min-height: 100vh;
         color: var(--text-main);
     }
 
-    /* 1. Fixed Sidebar - Prevents Rearranging */
+    /* 1. Perfect Centering for Welcome Screen */
+    #screen-welcome {
+        position: fixed; /* Break out of body flex */
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-color); /* Cover the dashboard area */
+        z-index: 1000;
+        margin: 0;
+    }
+    
+    .welcome-card {
+        background: var(--card-bg);
+        padding: 60px;
+        border-radius: 32px;
+        text-align: center;
+        max-width: 450px;
+        border: 1px solid var(--border);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    /* 2. Fixed Sidebar & Content Area */
     nav {
         width: 260px;
         background: var(--sidebar-bg);
@@ -36,14 +63,14 @@
         display: flex;
         flex-direction: column;
         padding: 40px 20px;
-        flex-shrink: 0; /* Prevents sidebar from squishing */
+        flex-shrink: 0;
         height: 100vh;
         position: sticky;
         top: 0;
     }
 
     .nav-item {
-        width: 100%; /* Forces all buttons to be the same width */
+        width: 100%;
         text-align: left;
         background: transparent;
         color: var(--text-dim);
@@ -53,7 +80,7 @@
         border: 1px solid transparent;
         cursor: pointer;
         font-weight: 600;
-        display: block; /* Blocks instead of inline-flex prevents jumping */
+        display: block;
         transition: all 0.2s ease;
     }
 
@@ -63,13 +90,48 @@
         border-color: rgba(34, 211, 238, 0.2);
     }
 
-    /* 2. Main Content Spacing */
     main {
         flex-grow: 1;
-        padding: 60px 80px; /* Generous padding fixes 'crowded' feel */
+        padding: 60px 80px;
         max-width: 1200px;
     }
 
+    /* 3. Modern Glass Month Picker (Select) */
+    select {
+        appearance: none; /* Remove default browser arrow */
+        background-color: rgba(255, 255, 255, 0.03);
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2322d3ee'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        background-size: 18px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        color: var(--text-main);
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 500;
+        padding: 12px 48px 12px 16px;
+        transition: all 0.2s ease;
+        width: 100%;
+        outline: none;
+    }
+
+    select:hover {
+        background-color: rgba(255, 255, 255, 0.07);
+        border-color: var(--accent);
+    }
+
+    select:focus {
+        box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.2);
+    }
+
+    /* Fix for dropdown options appearance */
+    option {
+        background-color: var(--sidebar-bg);
+        color: var(--text-main);
+    }
+
+    /* 4. Layout & Cards */
     .card {
         background: var(--card-bg);
         padding: 32px;
@@ -89,10 +151,9 @@
     .grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-        gap: 30px; /* Increased gap for breathing room */
+        gap: 30px;
     }
 
-    /* 3. Button Stability */
     button:not(.nav-item) {
         background: var(--accent);
         color: #083344;
@@ -108,28 +169,8 @@
         transform: translateY(-2px);
         filter: brightness(1.1);
     }
-    /* Center the welcome card perfectly */
-    #screen-welcome {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        min-height: 80vh; /* Takes up vertical space to center */
-    }
-    
-    .welcome-card {
-        background: var(--card-bg);
-        padding: 60px;
-        border-radius: 32px;
-        text-align: center;
-        max-width: 450px;
-        border: 1px solid var(--border);
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        /* This ensures it stays centered regardless of the body flex */
-        margin: auto; 
-    }
-    /* Modern Row Styling for the Summary */
+
+    /* 5. Summary Rows */
     .summary-item {
         display: flex;
         justify-content: space-between;
@@ -145,7 +186,7 @@
     .summary-item:hover {
         background: rgba(255, 255, 255, 0.04);
         border-color: rgba(34, 211, 238, 0.2);
-        transform: translateX(4px); /* Subtle slide effect */
+        transform: translateX(4px);
     }
     
     .summary-item span {
@@ -155,7 +196,7 @@
     }
     
     .summary-item strong {
-        font-family: 'JetBrains Mono', monospace; /* Monospace looks great for currency */
+        font-family: 'JetBrains Mono', monospace;
         color: var(--accent);
         font-size: 1rem;
         letter-spacing: -0.5px;
