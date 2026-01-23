@@ -10,7 +10,7 @@
     :root {
         --bg-color: #0f172a; 
         --card-bg: #1e293b;
-        --sidebar-bg: #111827;
+        --sidebar-bg: #1e293b;
         --text-main: #f8fafc;
         --text-dim: #94a3b8;
         --accent: #22d3ee;
@@ -57,16 +57,20 @@
 
     /* 2. Fixed Sidebar & Content Area */
     nav {
-        width: 260px;
+       width: 260px;
         background: var(--sidebar-bg);
         border-right: 1px solid var(--border);
         display: flex;
         flex-direction: column;
         padding: 40px 20px;
         flex-shrink: 0;
+        /* CHANGE: Ensure it doesn't overflow the screen weirdly */
         height: 100vh;
+        box-sizing: border-box;
         position: sticky;
         top: 0;
+        /* ADD: Enable scrolling if the screen is very short */
+        overflow-y: auto;
     }
 
     .nav-item {
@@ -82,6 +86,21 @@
         font-weight: 600;
         display: block;
         transition: all 0.2s ease;
+    }
+
+     /* Target the div wrapping your nav buttons (the flex-grow: 1 div) */
+    div[style*="flex-grow: 1"] {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Style for the container wrapping your Sign Out button at the bottom */
+    .sidebar-footer {
+        margin-top: auto; /* Pushes the footer to the bottom of the flex container */
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+        background: #1e293b; /* Matches sidebar */
     }
 
     .nav-item.active {
