@@ -108,6 +108,58 @@
         transform: translateY(-2px);
         filter: brightness(1.1);
     }
+    /* Center the welcome card perfectly */
+    #screen-welcome {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 80vh; /* Takes up vertical space to center */
+    }
+    
+    .welcome-card {
+        background: var(--card-bg);
+        padding: 60px;
+        border-radius: 32px;
+        text-align: center;
+        max-width: 450px;
+        border: 1px solid var(--border);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        /* This ensures it stays centered regardless of the body flex */
+        margin: auto; 
+    }
+    /* Modern Row Styling for the Summary */
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        margin-bottom: 8px;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 12px;
+        border: 1px solid transparent;
+        transition: all 0.2s ease;
+    }
+    
+    .summary-item:hover {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(34, 211, 238, 0.2);
+        transform: translateX(4px); /* Subtle slide effect */
+    }
+    
+    .summary-item span {
+        font-weight: 500;
+        color: var(--text-main);
+        font-size: 0.95rem;
+    }
+    
+    .summary-item strong {
+        font-family: 'JetBrains Mono', monospace; /* Monospace looks great for currency */
+        color: var(--accent);
+        font-size: 1rem;
+        letter-spacing: -0.5px;
+    }
 </style>
 </head>
 
