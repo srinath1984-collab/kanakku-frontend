@@ -10,6 +10,7 @@
  <style>
     :root {
         --bg-color: #0f172a; 
+        --sidebar-bg: #064e3b; /* The Dark Forest Green */
         --card-bg: #1e293b;
         --sidebar-bg: #1e293b;
         --text-main: #f8fafc;
@@ -59,7 +60,7 @@
     /* 2. Fixed Sidebar & Content Area */
     nav {
        width: 260px;
-        background: #064e3b; /* Deep Forest Green */
+        background-color: var(--sidebar-bg) !important; /* Forces the Green */
         border-right: 1px solid rgba(34, 211, 238, 0.2); /* Subtle Cyan border */
         display: flex;
         flex-direction: column;
@@ -104,7 +105,7 @@
         margin-top: auto; /* Pushes the footer to the bottom of the flex container */
         padding-top: 20px;
         border-top: 1px solid var(--border);
-        background: #064e3b; /* Must match the nav background */
+        background-color: var(--sidebar-bg) !important;
     }
 
     .nav-item.active {
