@@ -105,9 +105,13 @@
     }
 
     .nav-logo img {
-        height: 48px; /* Increased from 32px */
-        width: auto;
-        filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.3)); /* Subtle cyan glow */
+       /* Force the size regardless of other rules */
+        height: 64px !important; 
+        width: 64px !important;
+        object-fit: contain;
+        margin-bottom: 10px;
+        /* Subtle glow to make the nerdy brain pop */
+        filter: drop-shadow(0 0 10px rgba(34, 211, 238, 0.4));
     }
     
     .nav-logo h2 {
