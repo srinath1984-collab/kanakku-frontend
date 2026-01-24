@@ -59,8 +59,8 @@
     /* 2. Fixed Sidebar & Content Area */
     nav {
        width: 260px;
-        background: var(--sidebar-bg);
-        border-right: 1px solid var(--border);
+        background: #064e3b; /* Deep Forest Green */
+        border-right: 1px solid rgba(34, 211, 238, 0.2); /* Subtle Cyan border */
         display: flex;
         flex-direction: column;
         padding: 40px 20px;
@@ -81,7 +81,7 @@
         width: 100%;
         text-align: left;
         background: transparent;
-        color: var(--text-dim);
+        color: #ecfdf5; /* Very light green text */
         padding: 14px 18px;
         margin-bottom: 10px;
         border-radius: 12px;
@@ -104,14 +104,18 @@
         margin-top: auto; /* Pushes the footer to the bottom of the flex container */
         padding-top: 20px;
         border-top: 1px solid var(--border);
-        background: #1e293b; /* Matches sidebar */
+        background: #064e3b; /* Must match the nav background */
     }
 
     .nav-item.active {
         font-size: 1.15rem; /* Subtle scale up for the active tab */
         background: rgba(34, 211, 238, 0.1);
-        color: var(--accent);
+        color: #34d399; /* Bright Emerald text */
         border-color: rgba(34, 211, 238, 0.2);
+    }
+
+     .nav-item:hover {
+        background: rgba(255, 255, 255, 0.05);
     }
 
     main {
