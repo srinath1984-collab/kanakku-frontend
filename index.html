@@ -93,6 +93,28 @@
         transition: all 0.2s ease;
     }
 
+     /* Make the Logo bigger and centered */
+    .nav-logo {
+        display: flex;
+        flex-direction: column; /* Stack logo icon above the name */
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 40px; /* Space before the menu items start */
+    }
+
+    .nav-logo img {
+        height: 48px; /* Increased from 32px */
+        width: auto;
+        filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.3)); /* Subtle cyan glow */
+    }
+    
+    .nav-logo h2 {
+        font-family: 'Courier New', Courier, monospace !important;
+        font-size: 1.4rem;
+        letter-spacing: 2px;
+        margin: 0;
+    }
+
      /* Target the div wrapping your nav buttons (the flex-grow: 1 div) */
     div[style*="flex-grow: 1"] {
         flex-grow: 1;
