@@ -139,27 +139,45 @@
         color: var(--text-main);
     }
     
-    select {
+select {
         appearance: none;
-        background-color: rgba(255, 255, 255, 0.03);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        color: var(--accent); /* Cyan text on nerdy font looks great */
-        padding: 10px 35px 10px 15px;
+        -webkit-appearance: none;
+        background-color: rgba(15, 23, 42, 0.6);
+        border: 1px solid var(--accent);
+        border-radius: 4px;
+        color: var(--accent);
+        padding: 8px;
         cursor: pointer;
         outline: none;
-        /* Custom nerdy arrow */
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2322d3ee'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 12px center;
-        background-size: 14px;
+        font-family: 'Courier New', Courier, monospace !important;
+        
+        /* THE CRITICAL CHANGE */
+        /* This makes the list visible on the page rather than a popup */
+        height: 120px; 
+        overflow-y: auto;
     }
-    
-    /* This forces the dropdown list itself to be dark and nerdy */
+
+    /* Target the scrollbar to make it look nerdy/minimalist */
+    select::-webkit-scrollbar {
+        width: 6px;
+    }
+    select::-webkit-scrollbar-thumb {
+        background: var(--accent);
+        border-radius: 10px;
+    }
+
+    /* Now the font will actually apply to the text! */
     option {
-        background-color: #0f172a;
+        font-family: 'Courier New', Courier, monospace !important;
+        background-color: transparent;
         color: var(--text-main);
-        padding: 10px;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+
+    option:checked, option:hover {
+        background-color: rgba(34, 211, 238, 0.2) !important;
+        color: var(--accent);
     }
     
     select:hover {
