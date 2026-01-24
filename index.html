@@ -139,24 +139,27 @@
         color: var(--text-main);
     }
     
-    /* 2. Modern Month Picker (Select) */
     select {
         appearance: none;
-        background-color: rgba(15, 23, 42, 0.6);
+        background-color: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--accent); /* Cyan text on nerdy font looks great */
+        padding: 10px 35px 10px 15px;
+        cursor: pointer;
+        outline: none;
+        /* Custom nerdy arrow */
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2322d3ee'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
         background-repeat: no-repeat;
-        background-position: right 16px center;
-        background-size: 18px;
-        border: 1px solid var(--border);
-        border-radius: 12px;
+        background-position: right 12px center;
+        background-size: 14px;
+    }
+    
+    /* This forces the dropdown list itself to be dark and nerdy */
+    option {
+        background-color: #0f172a;
         color: var(--text-main);
-        padding: 12px 40px 12px 16px;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        width: 100%;
-        outline: none;
-        transition: all 0.2s ease;
+        padding: 10px;
     }
     
     select:hover {
@@ -258,6 +261,27 @@
     h1, h2, h3 {
         font-family: 'Courier New', Courier, monospace;
         font-weight: 700;
+    }
+     /* 1. Target the picker and its internal options */
+    select, 
+    select option, 
+    #month-picker, 
+    #drill-month-picker {
+        font-family: 'Courier New', Courier, monospace !important;
+        font-size: 0.95rem;
+        background-color: var(--sidebar-bg); /* Dark background for the list */
+        color: var(--text-main);
+        appearance: none; /* Modern reset */
+    }
+    
+    /* 2. Global "Everything" Reset (The Nuclear Option) */
+    /* This ensures that any dynamically generated text also gets the font */
+    * {
+        font-family: inherit;
+    }
+    
+    html {
+        font-family: 'Courier New', Courier, monospace;
     }
 </style>
 </head>
