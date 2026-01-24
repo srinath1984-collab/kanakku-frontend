@@ -325,12 +325,27 @@
     select, 
     select option, 
     #month-picker, 
-    #drill-month-picker {
+    #drill-month-picker.
+    #month-picker option{
         font-family: 'Courier New', Courier, monospace !important;
         font-size: 0.95rem;
         background-color: var(--sidebar-bg); /* Dark background for the list */
         color: var(--text-main);
         appearance: none; /* Modern reset */
+    }
+
+     /* 2. Fix for Chrome/Windows specifically */
+    select:-webkit-autofill,
+    select:-webkit-autofill:hover, 
+    select:-webkit-autofill:focus {
+        font-family: 'Courier New', Courier, monospace !important;
+    }
+
+    /* 3. The "Listbox" ensures the font is rendered by the browser, not the OS */
+    /* MAKE SURE your HTML has size="4" or similar! */
+    select[size] {
+        height: auto;
+        min-height: 100px;
     }
     
     /* 2. Global "Everything" Reset (The Nuclear Option) */
