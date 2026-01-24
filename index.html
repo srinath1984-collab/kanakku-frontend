@@ -243,6 +243,23 @@
         font-size: 1rem;
         letter-spacing: -0.5px;
     }
+         /* Force inheritance on all interactive elements */
+    button, 
+    select, 
+    input, 
+    option, 
+    .nav-item, 
+    .summary-item strong {
+        font-family: 'Courier New', Courier, monospace !important;
+        letter-spacing: -0.02em;
+    }
+    
+    /* Make headers look like typewriter titles */
+    h1, h2, h3 {
+        font-family: 'Courier New', Courier, monospace;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
 </style>
 </head>
 
