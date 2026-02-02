@@ -1128,28 +1128,32 @@ function renderLineChart(id, label, labels, data, color) {
 
        async function syncPreferences() {
            if (userToken === "GUEST_USER") return; // Skip DB fetch for guest
-    try {
-        const res = await fetch(`${BACKEND}/preferences`, {
-            headers: { 'Authorization': `Bearer ${userToken}` }
-        });
-
-        if (res.ok) {
-            const data = await res.json(); // Update the GLOBAL variable
-            globalPrefs = data;
-            
-            // Set dropdowns
-            document.getElementById('pref-currency').value = globalPrefs.currency || "₹";
-            document.getElementById('pref-dayfirst').value = (globalPrefs.dayfirst !== undefined) ? globalPrefs.dayfirst.toString() : "true";
-            // Sync the master list
-            if (globalPrefs.categories && globalPrefs.categories.length > 0) {
-                localCategories = globalPrefs.categories;
-                console.log("Categories loaded from DB:", localCategories);
-                renderCategoryTags(); // Update Settings UI
-            }
-            fetchSummary();
+            try {
+                console.log("getting preferences");
+                const res = await fetch(`${BACKEND}/preferences`, {
+                    headers: { 'Authorization': `Bearer ${userToken}` }
+                });
+                console.log("done gertting preferences");
+        
+                if (res.ok) {
+                    const data = await res.json(); // Update the GLOBAL variable
+                    globalPrefs = data;
+                    
+                    // Set dropdowns
+                    document.getElementById('pref-currency').value = globalPrefs.currency || "₹";
+                    document.getElementById('pref-dayfirst').value = (globalPrefs.dayfirst !== undefined) ? globalPrefs.dayfirst.toString() : "true";
+                    // Sync the master list
+                    if (globalPrefs.categories && globalPrefs.categories.length > 0) {
+                        localCategories = globalPrefs.categories;
+                        console.log("Categories loaded from DB:", localCategories);
+                        renderCategoryTags(); // Update Settings UI
+                    }
+                    console.log("getting summary");
+                    fetchSummary();
+                    console.log("done getting summary");
+                }
+            } catch (e) { console.error("Sync error", e); }
         }
-    } catch (e) { console.error("Sync error", e); }
-}
 
 async function fetchSummary() {
     if (!userToken) return;
