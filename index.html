@@ -9,20 +9,20 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
  <style>
     :root {
-        --bg-color: #0f172a; 
-        --sidebar-bg: #064e3b; /* The Dark Forest Green */
-        --card-bg: #1e293b;
-        --sidebar-bg: #1e293b;
-        --text-main: #f8fafc;
-        --text-dim: #94a3b8;
-        --accent: #22d3ee;
-        --accent-hover: #0891b2;
+        --bg-color: #022c22;        /* Deep Obsidian Green */
+        --sidebar-bg: #064e3b;     /* Forest Green */
+        --card-bg: #022c22;        /* Cards match background for seamless look */
+        --text-main: #34d399;      /* Emerald Green Text */
+        --text-dim: #065f46;       /* Dimmer Green */
+        --accent: #22d3ee;         /* Cyan Glow */
+        --border: #064e3b;         /* Subtle Forest border */
+         --accent-hover: #0891b2;
         --danger: #fb7185;
-        --border: rgba(255, 255, 255, 0.06);
     }
 
     body {
-        font-family: 'Courier New', Courier, monospace;
+        font-family: 'Courier New', Courier, monospace !important;
+        text-transform: uppercase; /* Enhances the terminal feel */
         background-color: var(--bg-color);
         margin: 0;
         /* Flex is only for when the dashboard is visible */
@@ -303,6 +303,25 @@
         color: var(--accent);
         font-size: 1rem;
         letter-spacing: -0.5px;
+    }
+
+         /* Custom Month Picker (UL Terminal Style) */
+    .terminal-picker {
+        list-style: none;
+        padding: 0;
+        border: 1px solid var(--sidebar-bg);
+    }
+    
+    .terminal-picker li {
+        padding: 8px 12px;
+        cursor: pointer;
+        border-left: 3px solid transparent;
+    }
+    
+    .terminal-picker li.active {
+        border-left: 3px solid var(--accent);
+        background: #064e3b;
+        color: var(--accent);
     }
      
          /* Force inheritance on all interactive elements */
@@ -1172,7 +1191,7 @@ async function fetchSummary() {
         const currencySymbol = globalPrefs.currency || "₹";
         const selectedMonth = monthPicker.value;
 
-        const res = await fetch(`${BACKEND}/summary?month=${selectedMonth}`, {
+        const res = await authorizedFetch(`${BACKEND}/summary?month=${selectedMonth}`, {
             headers: { 'Authorization': `Bearer ${userToken}` }
         });
         
@@ -1257,31 +1276,48 @@ async function fetchSummary() {
             }
         }
 
-                // This runs once when the app loads
-        function attachSyncListener() {
-            const statusRef = doc(db, "users", userEmail, "status", "sync");
+        // Replace your existing attachSyncListener with this Command Center version
+function attachSyncListener() {
+    const statusRef = doc(db, "users", userEmail, "status", "sync");
+
+    onSnapshot(statusRef, (snapshot) => {
+        const data = snapshot.data();
+        if (!data) return;
+
+        const btn = document.querySelector('.btn-sync');
         
-            // This callback fires EVERY time the document changes in Firestore
-            onSnapshot(statusRef, (snapshot) => {
-                const data = snapshot.data();
-                if (!data) return;
-        
-                const btn = document.querySelector('.btn-sync');
-        
-                if (data.status === "processing") {
-                    btn.innerHTML = "AI is thinking...";
-                    btn.disabled = true;
-                } 
-                else if (data.status === "completed") {
-                    btn.innerHTML = "Re-apply Smart Rules";
-                    btn.disabled = false;
-                    
-                    // AUTOMATIC REFRESH
-                    fetchSummary(); 
-                    showToast("Kalana has finished recategorizing!");
-                }
-            });
+        if (data.status === "processing") {
+            // Priority: Terminal feedback
+            btn.innerHTML = `[SYNCING: ${data.processed || 0} RECORDS]`;
+            btn.style.color = 'var(--accent)';
+            btn.disabled = true;
+        } 
+        else if (data.status === "completed") {
+            btn.innerHTML = "RUN_GLOBAL_SYNC";
+            btn.disabled = false;
+            btn.style.color = 'var(--text-main)';
+            
+            fetchSummary(); 
+            showToast("SYNC_COMPLETE: HISTORICAL DATA REALIGNED");
         }
+    });
+}
+
+// Global Handshake for 401 handling
+async function authorizedFetch(url, options = {}) {
+    let res = await fetch(url, options);
+    
+    if (res.status === 401) {
+        console.log("HANDSHAKE_EXPIRED: Refreshing Token...");
+        const user = auth.currentUser;
+        if (user) {
+            const newToken = await user.getIdToken(true); // Forced refresh
+            options.headers = { ...options.headers, 'Authorization': `Bearer ${newToken}` };
+            return fetch(url, options); // Retry
+        }
+    }
+    return res;
+}
 
         async function addRule() {
             const kw = document.getElementById('new-keyword').value;
