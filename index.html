@@ -668,6 +668,7 @@
                    const btn = document.querySelector('.btn-sync');
             btn.disabled = true;
             btn.innerHTML = "Syncing...";
+            console.log("starting recategorize");
         
             const res = await fetch(`${BACKEND}/recategorize`, {
                 method: 'POST',
@@ -679,6 +680,7 @@
         
             const data = await res.json();
             showToast(data.message);
+            console.log("done recategorize");
             
             // Refresh the local UI after a short delay
             setTimeout(() => {
